@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Sunward</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap">
 <style>
 /* Layout: the sky is the page. One pane on phones (sky above, cards below, floating tabs),
    two panes on foldables/tablets (sky stays put, content scrolls beside it),
@@ -14,7 +14,7 @@
   --pane:#070b16; --accent:#8fb8ff;
   --sun:#ff9d4d; --gold:#ffd166; --blue:#6aa8ff; --violet:#9a86ff; --noon:#ffffff;
   --b-night:#0a0e26; --b-astro:#1d1a4d; --b-naut:#3b2a73; --b-civil:#8a4a86; --b-gold:#f2a268; --b-day:#62b2f2;
-  --display:"Instrument Serif","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --display:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --ui:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
 }
@@ -55,8 +55,8 @@ small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opac
 .headline{position:absolute;left:0;right:0;top:clamp(58px,12cqh,96px);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;pointer-events:none}
 .headline>div{min-width:0}
 .eyebrow{font-size:clamp(12px,2.6cqh,14px);font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.78)}
-h1{margin:.04em 0 .06em;font:400 clamp(34px,min(11.5cqw,12.5cqh),84px)/1 var(--display);letter-spacing:-.01em;text-wrap:balance}
-h1 i{font-style:italic}
+h1{margin:.08em 0 .1em;font:600 clamp(30px,min(10cqw,11cqh),72px)/1.02 var(--display);letter-spacing:-.035em;text-wrap:balance}
+h1 i{font-style:normal;font-weight:300}
 .next{margin:0;font-size:clamp(14px,3cqh,18px);color:rgba(255,255,255,.82)}
 .next b{font-weight:600;color:#fff}
 .ring{flex:none;display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:rgba(255,255,255,.8);margin-top:6px}
@@ -83,7 +83,7 @@ h1 i{font-style:italic}
 @keyframes viewIn{from{opacity:.4;transform:translateY(10px)}}
 .app[data-tab=today] #overview,.app[data-tab=year] #year,.app[data-tab=events] #events{display:block}
 .k{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
+h2{margin:0;font:600 26px/1.1 var(--display);letter-spacing:-.025em}
 .vhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:6px 2px 14px}
 
 .tabs{--n:4;position:fixed;z-index:20;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:grid;grid-template-columns:repeat(var(--n),1fr);padding:5px;border-radius:26px;background:rgba(22,26,40,.62);border:1px solid var(--line);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);box-shadow:0 12px 40px rgba(0,0,0,.4)}
@@ -101,7 +101,7 @@ h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
 @keyframes rise{from{opacity:.4;transform:translateY(16px)}}
 .card.wide{grid-column:1/-1}
 .card h3{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-.big{font:400 28px/1.1 var(--display)}
+.big{font:600 23px/1.15 var(--display);letter-spacing:-.02em}
 .sub{color:var(--ink-2);font-size:13px}
 .split{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:14px 10px;margin-top:16px}
@@ -134,7 +134,7 @@ h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
 .mini span{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px}
 .mini span i{width:8px;height:8px;border-radius:50%}
 .mini b{font-weight:500;white-space:nowrap}
-.big i{font-style:italic;color:var(--accent)}
+.big i{font-style:normal;font-weight:400;color:var(--accent)}
 .wave{position:relative;height:78px;margin-top:16px}
 .wave svg{display:block;width:100%;height:100%;overflow:visible}
 .wave i{position:absolute;width:9px;height:9px;margin:-4.5px;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
