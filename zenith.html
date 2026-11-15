@@ -236,6 +236,36 @@ h2{margin:0;font:600 26px/1.1 var(--display);letter-spacing:-.025em}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+/* ───────── Glass: translucent cards over a backdrop tinted by the current sky ───────── */
+.app{background:radial-gradient(60% 45% at 88% 0%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 72%),radial-gradient(75% 50% at 8% 100%,var(--orb,transparent),transparent 72%),linear-gradient(180deg,var(--p1,#0b1226),var(--p2,#0a0f20) 55%,var(--p3,#070a14))}
+.cards{gap:14px}
+.card{border:0;border-radius:26px;padding:18px 20px 20px;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.055));backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.18),0 12px 34px rgba(0,0,0,.2)}
+.chartbox{border:0;border-radius:26px;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 12px 34px rgba(0,0,0,.22)}
+.card h3,.k{font-size:12px;font-weight:600;letter-spacing:.05em;color:rgba(255,255,255,.52)}
+h2{font:700 28px/1.1 var(--display);letter-spacing:-.022em}
+.vhead{margin:8px 4px 16px}
+.big{font:600 25px/1.15 var(--display);letter-spacing:-.02em}
+.stats .v{font-size:21px;font-weight:500;letter-spacing:-.012em}
+.sub{color:rgba(255,255,255,.62)}
+.bar{height:10px;border-radius:5px}
+.bar i{top:-6px;bottom:-6px;width:4px;margin-left:-2px;box-shadow:0 0 0 2px rgba(0,0,0,.28),0 0 10px rgba(255,255,255,.7)}
+.row{border-bottom:0;position:relative;padding:13px 2px}
+.row+.row::before{content:"";position:absolute;left:23px;right:0;top:0;height:1px;background:rgba(255,255,255,.1);transform:scaleY(.5)}
+.row .dot{box-shadow:0 0 8px currentColor}
+.row .l span{font-size:16px}
+.row .t{font-size:17px;font-weight:400;color:rgba(255,255,255,.94)}
+.nowline{font-size:11px;letter-spacing:.08em}
+.tabs{background:rgba(255,255,255,.1);border:0;backdrop-filter:blur(30px) saturate(1.7);-webkit-backdrop-filter:blur(30px) saturate(1.7);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.18),0 12px 34px rgba(0,0,0,.28)}
+.tabs::before{background:rgba(255,255,255,.17)}
+.tabs button[aria-selected=true]{color:#fff}
+.btn{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.sheet{border:0;background:rgba(30,34,50,.72);backdrop-filter:blur(34px) saturate(1.6);-webkit-backdrop-filter:blur(34px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),0 30px 80px rgba(0,0,0,.5)}
+.sheet input{border:0;background:rgba(255,255,255,.1);border-radius:12px}
+.tp{border-radius:18px}
+.tp.on{background:rgba(255,255,255,.1)}
+.prog{height:4px}
+.legend{font-size:12px;color:rgba(255,255,255,.6)}
 </style>
 
 <div class="app" id="app" data-tab="today">
@@ -542,6 +572,8 @@ const shown=el=>el.offsetParent!==null;
 const hero=$('hero'),curve=$('curve');
 let geo={W:0,H:0,hy:0,sc:1,xy:[]};
 
+function tint(k){const r=document.documentElement.style,m=(c,f,b)=>rgb(c.map((v,i)=>Math.round(v*f+b[i])));
+  r.setProperty('--accent',rgb(k[5]));r.setProperty('--pane',m(k[0],.2,[5,7,13]));r.setProperty('--p1',m(k[0],.5,[6,8,16]));r.setProperty('--p2',m(k[1],.3,[6,8,16]));r.setProperty('--p3',m(k[2],.1,[5,6,12]));r.setProperty('--orb',rgb(k[4],.2))}
 function solarDay(day){if(day.sp===undefined){day.sp='';const yr=new Date(day.wallMid).getUTCFullYear();for(let k=0;k<4;k++)if(getDay(S.loc,seasonPoint(yr,k)).key===day.key)day.sp=SP[k]}return day.sp}
 function heroStatic(day){
   const W=hero.clientWidth,H=hero.clientHeight;if(!W||!H)return;
@@ -584,8 +616,7 @@ function renderHero(day,ts){
   set('--hglow',rgb([255,198,86],(edge*.9).toFixed(3)));set('--hglow2',rgb([244,98,20],(edge*.72).toFixed(3)));set('--gsq',(1-.42*low).toFixed(2));
   set('--refl',rgb(d1,(refl*.2).toFixed(3)));set('--refl2',rgb(d2,(refl*.14).toFixed(3)));
   set('--stars',clamp((-a-5)/9,0,1));set('--haze',rgb(hor.map((v,i)=>Math.round(v+([255,92,22][i]-v)*edge)),(.5+.4*edge).toFixed(2)));set('--haze2',rgb(hor.map(v=>Math.round(v*.28)),.9));
-  const root=document.documentElement.style;
-  root.setProperty('--accent',rgb(acc));root.setProperty('--pane',rgb(top.map((v,i)=>Math.round(v*.2+[5,7,13][i]))));
+  tint([top,upr,mid,lo,hor,acc]);
   // headline
   const all=[getDay(loc,day.start-DAY/2),day,getDay(loc,day.start+DAY*1.5)].flatMap(d=>d.ev).sort((x,y)=>x.ts-y.ts);
   const big=e=>e.k==='sunrise'||e.k==='sunset',nowEv=all.find(e=>big(e)&&ts>=e.ts-6e4&&ts<=e.ts+15e4)||all.find(e=>Math.abs(ts-e.ts)<=45e3),nx=all.find(e=>e.ts>ts&&e!==nowEv);
@@ -718,7 +749,7 @@ function renderYear(day,ts){
 }
 function render(){
   const ts=T(),day=getDay(S.loc,ts);
-  if(shown(hero))renderHero(day,ts);else{const k=sky(sunPos(ts,S.loc.lat,S.loc.lng).alt),top=k[0],acc=k[5],r=document.documentElement.style;r.setProperty('--accent',rgb(acc));r.setProperty('--pane',rgb(top.map((v,i)=>Math.round(v*.2+[5,7,13][i]))))}
+  if(shown(hero))renderHero(day,ts);else tint(sky(sunPos(ts,S.loc.lat,S.loc.lng).alt));
   const live=S.view==null||!!S.anim||S.scrub;if(changed('live',live)){$('backBtn').hidden=live;document.querySelectorAll('[data-now]').forEach(b=>b.hidden=live)}
   if(shown($('overview')))renderOverview(day,ts);
   if(shown($('events')))renderEvents(day,ts);
