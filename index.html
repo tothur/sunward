@@ -1,0 +1,783 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><style>:root{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Zenith Sun Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: the sky is the page. One pane on phones (sky above, cards below, floating tabs),
+   two panes on foldables/tablets (sky stays put, content scrolls beside it),
+   three columns on laptops (sky | today + year | events). Single dark look: the palette follows the sun, not the OS theme. */
+:root{
+  color-scheme:dark;
+  --ink:#f4f6fb; --ink-2:rgba(236,240,250,.68); --ink-3:rgba(236,240,250,.42);
+  --line:rgba(255,255,255,.09); --card:rgba(255,255,255,.055); --card-2:rgba(255,255,255,.09);
+  --pane:#070b16; --accent:#8fb8ff;
+  --sun:#ff9d4d; --gold:#ffd166; --blue:#6aa8ff; --violet:#9a86ff; --noon:#ffffff;
+  --b-night:#0a0e26; --b-astro:#1d1a4d; --b-naut:#3b2a73; --b-civil:#8a4a86; --b-gold:#f2a268; --b-day:#62b2f2;
+  --display:"Instrument Serif","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --ui:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--pane);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,.hero:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opacity:.75}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.app{height:100%;overflow-y:auto;overscroll-behavior:contain}
+
+/* ───────── Sky ───────── */
+.hero{position:relative;height:72%;min-height:430px;overflow:hidden;container-type:size;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize;background:#000}
+.sky{position:absolute;inset:0 0 auto 0;height:var(--hy,62%);overflow:hidden;--sg:var(--s-top,#0b1030) 0%,var(--s-up,#101c48) 36%,var(--s-mid,#16214f) 64%,var(--s-low,#23306a) 86%,var(--s-hor,#2a2f6e) 100%;background:linear-gradient(to bottom,var(--sg));background:linear-gradient(to bottom in oklab,var(--sg))}
+.sky canvas{position:absolute;inset:0;width:100%;height:100%;opacity:var(--stars,0)}
+.sky .tw{animation:tw 3.6s ease-in-out infinite alternate}
+@keyframes tw{from{filter:opacity(.25)}to{filter:opacity(1)}}
+.glow{position:absolute;left:0;top:0;width:140cqmin;height:140cqmin;border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);background:radial-gradient(circle,var(--glow,transparent) 0,transparent 19%),radial-gradient(circle,var(--glow2,transparent) 0,transparent 60%);opacity:var(--glow-a,0);will-change:translate}
+.sky::after{content:"";position:absolute;inset:auto 0 0 0;height:70%;background:radial-gradient(ellipse 30% 55% at var(--sx,50%) 100%,var(--hglow,transparent),transparent 72%),radial-gradient(ellipse 115% 34% at var(--sx,50%) 100%,var(--hglow2,transparent),transparent 74%),radial-gradient(ellipse 85% 62% at calc(100% - var(--sx,50%)) 100%,var(--venus,transparent),transparent 72%)}
+.sunlayer{position:absolute;inset:0 0 auto 0;height:var(--hy,62%);overflow:hidden;pointer-events:none}
+.disc{position:absolute;left:0;top:0;width:var(--ds,28px);height:var(--ds,28px);border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);scale:1 var(--sq,1);opacity:var(--disc-a,0);
+  background:radial-gradient(circle,var(--d0,#fff) 0,var(--d0,#fff) 38%,var(--d1,#fff) 78%,var(--d2,#fff) 100%);
+  box-shadow:0 0 calc(var(--ds,28px)*.22) var(--d1,#fff),0 0 calc(var(--ds,28px)*.9) var(--d2,#fff),0 0 calc(var(--ds,28px)*2.6) var(--d3,transparent)}
+.ground{position:absolute;inset:var(--hy,62%) 0 0 0;background:linear-gradient(to bottom,var(--g-top,#05060c),#020308 60%)}
+.ground::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;background:radial-gradient(ellipse 16% 100% at var(--sx,50%) 0,var(--refl,transparent),transparent 78%),radial-gradient(ellipse 75% 26% at var(--sx,50%) 0,var(--refl2,transparent),transparent 72%)}
+.curve{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.curve text{font:500 10px var(--ui);fill:rgba(255,255,255,.5);text-anchor:middle;letter-spacing:.04em}
+
+.hero{--foot:16px}
+.hero-top{position:absolute;inset:0 0 auto 0;padding-top:14px;display:flex;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:18px;background:rgba(255,255,255,.14);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);font-weight:500;font-size:14px;cursor:pointer;transition:background .2s,transform .2s var(--ease)}
+.pill:hover{background:rgba(255,255,255,.22)}
+.pill:active{transform:scale(.96)}
+.pill svg{width:14px;height:14px;flex:none}
+.pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46cqw}
+.headline{position:absolute;left:0;right:0;top:clamp(58px,12cqh,96px);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;pointer-events:none}
+.headline>div{min-width:0}
+.eyebrow{font-size:clamp(12px,2.6cqh,14px);font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.78)}
+h1{margin:.04em 0 .06em;font:400 clamp(34px,min(11.5cqw,12.5cqh),84px)/1 var(--display);letter-spacing:-.01em;text-wrap:balance}
+h1 i{font-style:italic}
+.next{margin:0;font-size:clamp(14px,3cqh,18px);color:rgba(255,255,255,.82)}
+.next b{font-weight:600;color:#fff}
+.ring{flex:none;display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:rgba(255,255,255,.8);margin-top:6px}
+.ring svg{width:44px;height:44px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:3.5;stroke-linecap:round}
+.ring .tr{stroke:rgba(255,255,255,.2)}
+.ring .fg{stroke:#fff;transition:stroke-dashoffset .4s}
+.hero-foot{position:absolute;inset:auto 0 0 0;padding-bottom:var(--foot);display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;pointer-events:none}
+.hero-foot div{display:grid;gap:1px}
+.hero-foot div:nth-child(2){text-align:center}
+.hero-foot div:last-child{text-align:right}
+.hero-foot .k{color:rgba(255,255,255,.5)}
+.hero-foot .v{font-size:clamp(16px,3.6cqh,20px);font-weight:500}
+.back{position:absolute;left:50%;bottom:calc(var(--foot) + 58px);transform:translateX(-50%);background:rgba(255,255,255,.92);color:#0b1020;font-weight:600;animation:pop .35s var(--ease)}
+.back:hover{background:#fff}
+.back:active{transform:translateX(-50%) scale(.96)}
+@keyframes pop{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(.94)}}
+.hint{position:absolute;left:0;right:0;bottom:calc(var(--foot) + 62px);text-align:center;font-size:12px;color:rgba(255,255,255,.45);pointer-events:none;transition:opacity .5s}
+.hint.off{opacity:0}
+
+/* ───────── Pane ───────── */
+.pane{padding-block:16px calc(96px + env(safe-area-inset-bottom,0px))}
+.view{display:none;animation:viewIn .5s var(--ease)}
+@keyframes viewIn{from{opacity:.4;transform:translateY(10px)}}
+.app[data-tab=today] #overview,.app[data-tab=year] #year,.app[data-tab=events] #events{display:block}
+.k{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
+.vhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:6px 2px 14px}
+
+.tabs{--n:4;position:fixed;z-index:20;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:grid;grid-template-columns:repeat(var(--n),1fr);padding:5px;border-radius:26px;background:rgba(22,26,40,.62);border:1px solid var(--line);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.tabs::before{content:"";position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px)/var(--n));border-radius:21px;background:rgba(255,255,255,.13);transform:translateX(calc(var(--i,0)*100%));transition:transform .45s var(--ease)}
+.tabs button{position:relative;display:grid;justify-items:center;gap:2px;min-width:72px;padding:7px 8px 6px;font-size:11px;font-weight:500;color:var(--ink-2);transition:color .25s;border-radius:21px}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected=true]{color:var(--accent)}
+.tabs svg{width:20px;height:20px}
+.tabs .wide{display:none}
+.app[data-tab=sky] .pane{display:none}
+.app[data-tab=sky] .hero{height:100%}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;animation:rise .8s var(--ease) both;animation-delay:calc(var(--n,0)*80ms + 150ms)}
+@keyframes rise{from{opacity:.4;transform:translateY(16px)}}
+.card.wide{grid-column:1/-1}
+.card h3{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.big{font:400 28px/1.1 var(--display)}
+.sub{color:var(--ink-2);font-size:13px}
+.split{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:14px 10px;margin-top:16px}
+.stats div{display:grid;gap:2px;min-width:0;align-content:start}
+.stats .v{font-size:19px;font-weight:500;white-space:nowrap}
+.up{color:#7fe0a5}.down{color:#ffb38a}
+
+.bar{position:relative;height:16px;border-radius:8px}
+.bar i{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1.5px;border-radius:2px;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 12px rgba(255,255,255,.8)}
+.scale{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;font-weight:500;color:var(--ink-3);letter-spacing:.04em}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:11px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:3px}
+
+.rows{display:grid}
+.row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);transition:opacity .3s}
+.row:last-child{border-bottom:0}
+.row .dot{flex:none;width:9px;height:9px;border-radius:50%;box-shadow:0 0 10px currentColor;background:currentColor}
+.row .l{flex:1;min-width:0;display:grid}
+.row .l span{font-weight:500}
+.row .l em{font-style:normal;font-size:12px;color:var(--ink-3)}
+.row .t{font-size:16px;font-weight:500;white-space:nowrap;text-align:right}
+.row .t em{display:block;font-style:normal;font-size:12px;font-weight:400;color:var(--ink-3)}
+.row.past{opacity:.42}
+.nowline{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.nowline::before,.nowline::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--accent))}
+.nowline::after{transform:scaleX(-1)}
+.mini{display:grid;gap:9px}
+.mini div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.mini span{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px}
+.mini span i{width:8px;height:8px;border-radius:50%}
+.mini b{font-weight:500;white-space:nowrap}
+.big i{font-style:italic;color:var(--accent)}
+.wave{position:relative;height:78px;margin-top:16px}
+.wave svg{display:block;width:100%;height:100%;overflow:visible}
+.wave i{position:absolute;width:9px;height:9px;margin:-4.5px;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+.wave i.now{width:13px;height:13px;margin:-6.5px;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.22),0 0 14px #fff}
+.wlab{position:relative;height:18px;margin-top:8px;font-size:11px;font-weight:500;color:var(--ink-2)}
+.wlab span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.wlab .r{right:0;transform:none}
+.row.feat{padding-block:16px}
+.row.feat .l span{font:400 23px/1.1 var(--display)}
+.row.feat .dot{width:12px;height:12px}
+.prog{height:5px;border-radius:3px;background:var(--card-2);margin-top:14px;overflow:hidden}
+.prog i{display:block;height:100%;border-radius:3px;background:var(--accent);transition:width .5s var(--ease)}
+
+.chartbox{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line);touch-action:pan-y;cursor:crosshair;aspect-ratio:1/1.05;max-height:560px;width:100%}
+.chartbox canvas{display:block;width:100%;height:100%}
+
+/* ───────── Places sheet ───────── */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(2,4,10,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;align-items:end;justify-items:center;animation:fade .25s}
+@keyframes fade{from{opacity:0}}
+.sheet{width:min(100%,460px);max-height:86%;display:flex;flex-direction:column;background:#141826;border:1px solid var(--line);border-radius:26px 26px 0 0;padding-block:16px calc(16px + env(safe-area-inset-bottom,0px));animation:up .45s var(--ease)}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sheet input{width:100%;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;padding:0 14px}
+.sheet input::placeholder{color:var(--ink-3)}
+.sheet .list{overflow-y:auto;margin-top:8px;min-height:120px}
+.place{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 4px;border-bottom:1px solid var(--line)}
+.place .orb{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
+.place .l{flex:1;min-width:0;display:grid}
+.place .l b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.place .l em{font-style:normal;font-size:12px;color:var(--ink-3)}
+.place .t{text-align:right;font-weight:500;white-space:nowrap}
+.place .t em{display:block;font-style:normal;font-size:12px;font-weight:400;color:var(--ink-3)}
+.place[aria-current=true] .l b{color:var(--accent)}
+.rm{flex:none;width:28px;height:28px;border-radius:50%;color:var(--ink-3);font-size:18px;line-height:1}
+.rm:hover{background:var(--card-2);color:var(--ink)}
+.btn{height:36px;padding:0 14px;border-radius:18px;background:var(--card-2);font-weight:500;font-size:14px}
+.btn:hover{background:rgba(255,255,255,.16)}
+.toast{position:fixed;z-index:60;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:calc(100% - 32px);background:#f4f6fb;color:#0b1020;font-weight:500;font-size:14px;padding:10px 16px;border-radius:16px;animation:fade .3s}
+
+/* ───────── Two panes: foldables, tablets, landscape phones ───────── */
+@media (min-width:700px){
+  .app{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,46%);grid-template-rows:minmax(0,1fr);overflow:hidden}
+  .app[data-tab=sky]{grid-template-columns:minmax(0,1fr)}
+  .hero{height:100%;min-height:0}
+  .pane{height:100%;overflow-y:auto;overscroll-behavior:contain;padding-block:calc(78px + env(safe-area-inset-top,0px)) 28px}
+  .tabs{top:calc(14px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));left:auto;bottom:auto;transform:none;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+  .tabs button{grid-auto-flow:column;align-items:center;gap:7px;font-size:13px;padding:9px 13px;min-width:0}
+  .tabs svg{width:17px;height:17px}
+  .tabs span{display:none}
+  .scrim{align-items:center}
+  .sheet{border-radius:26px;max-height:min(86%,640px)}
+}
+@media (min-width:900px){.tabs span{display:inline}}
+@media (max-width:699.98px){
+  .app:not([data-tab=today]):not([data-tab=sky]) .hero{display:none}
+  .app:not([data-tab=today]) .pane{padding-top:calc(20px + env(safe-area-inset-top,0px))}
+  .app[data-tab=sky] .hero{--foot:calc(92px + env(safe-area-inset-bottom,0px))}
+}
+/* ───────── Dashboard: laptops and up can show everything at once ───────── */
+@media (min-width:1240px){
+  .tabs{--n:5}
+  .tabs .wide{display:grid}
+  .app[data-tab=all]{grid-template-columns:minmax(0,1fr) minmax(0,1.45fr)}
+  .app[data-tab=all] .pane{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.62fr);grid-template-areas:"overview events" "year events";gap:28px 24px;align-content:start}
+  .app[data-tab=all] .pane .view{display:block;animation:none}
+  #overview{grid-area:overview}#year{grid-area:year}#events{grid-area:events}
+}
+/* Dual-screen and folded postures: put the sky on one segment, content on the other */
+@media (horizontal-viewport-segments:2){
+  .app{display:grid;grid-template-columns:env(viewport-segment-width 0 0) minmax(0,1fr);grid-template-rows:minmax(0,1fr);column-gap:calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0));overflow:hidden}
+}
+@media (vertical-viewport-segments:2){
+  .app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:env(viewport-segment-height 0 0) minmax(0,1fr);row-gap:calc(env(viewport-segment-top 0 1) - env(viewport-segment-bottom 0 0));overflow:hidden}
+  .app .hero{display:block;height:100%;min-height:0}
+  .pane{overflow-y:auto;height:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<div class="app" id="app" data-tab="today">
+  <section class="hero" id="hero" tabindex="0" role="slider" aria-label="Time of day. Drag or use arrow keys to move through the day." aria-valuemin="0" aria-valuemax="24">
+    <div class="sky"><canvas id="st1"></canvas><canvas id="st2" class="tw"></canvas><div class="glow"></div></div>
+    <div class="ground"></div>
+    <svg class="curve" id="curve" aria-hidden="true"></svg>
+    <div class="sunlayer"><div class="disc"></div></div>
+    <div class="hero-top gut">
+      <button class="pill" id="locBtn" aria-haspopup="dialog"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.6 1.4 1.7 6.5c-.5.2-.5.9 0 1.1l4.9 1.8 1.8 4.9c.2.5.9.5 1.1 0z"/></svg><span id="locName">—</span></button>
+      <button class="pill" id="hcBtn" aria-label="Switch between 12-hour and 24-hour time"></button>
+    </div>
+    <div class="headline gut">
+      <div>
+        <div class="eyebrow" id="hDate"></div>
+        <h1 id="hPhase"></h1>
+        <p class="next" id="hNext"></p>
+      </div>
+      <div class="ring" title="Daylight remaining today">
+        <svg viewBox="0 0 44 44"><circle class="tr" cx="22" cy="22" r="19"/><circle class="fg" id="ringFg" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="100"/></svg>
+        <span id="ringTxt"></span>
+      </div>
+    </div>
+    <div class="hint" id="hint">Drag across the sky to move through the day</div>
+    <button class="pill back" id="backBtn" hidden>Back to now</button>
+    <div class="hero-foot gut">
+      <div><span class="k">Sunrise</span><span class="v" id="fRise"></span></div>
+      <div><span class="k">Daylight</span><span class="v" id="fLen"></span></div>
+      <div><span class="k">Sunset</span><span class="v" id="fSet"></span></div>
+    </div>
+  </section>
+
+  <main class="pane gut" id="pane">
+
+    <section class="view" id="overview" aria-label="Today">
+      <div class="cards">
+        <div class="card wide" style="--n:0" id="cLight"></div>
+        <div class="card wide" style="--n:1" id="cSol"></div>
+        <div class="card" style="--n:1" id="cPath"></div>
+        <div class="card" style="--n:2" id="cMoon"></div>
+        <div class="card" style="--n:3" id="cHours"></div>
+        <div class="card" style="--n:4" id="cSeason"></div>
+      </div>
+    </section>
+
+    <section class="view" id="year" aria-label="Year">
+      <div class="vhead"><div><div class="k" id="yK">Daylight through the year</div><h2 id="yDate"></h2></div><div class="sub" id="yDelta" style="text-align:right;white-space:nowrap"></div></div>
+      <button class="btn" data-now hidden style="margin:-4px 0 12px">Back to today</button>
+      <div class="chartbox" id="chartbox"><canvas id="chart" role="img" aria-label="Chart of daylight, twilight and night for every day of the year"></canvas></div>
+      <div class="legend">
+        <span><i style="background:var(--b-day)"></i>Daylight</span><span><i style="background:var(--b-gold)"></i>Golden hour</span><span><i style="background:var(--b-civil)"></i>Civil twilight</span><span><i style="background:var(--b-naut)"></i>Nautical</span><span><i style="background:var(--b-astro)"></i>Astronomical</span><span><i style="background:var(--b-night);border:1px solid var(--line)"></i>Night</span>
+      </div>
+      <div class="cards" style="margin-top:14px"><div class="card wide" id="cYear" style="--n:1"></div></div>
+    </section>
+
+    <section class="view" id="events" aria-label="Events">
+      <div class="vhead"><div><div class="k">Solar events</div><h2 id="eDate"></h2></div><button class="btn" data-now hidden>Back to now</button></div>
+      <div class="card" style="--n:2;padding-block:6px"><div class="rows" id="eDay"></div></div>
+      <div class="vhead" style="margin-top:26px"><div><div class="k">Coming up</div><h2>This year</h2></div></div>
+      <div class="card" style="--n:3;padding-block:6px"><div class="rows" id="eYear"></div></div>
+    </section>
+  </main>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Views">
+    <button role="tab" data-tab="sky" title="Full-screen sky"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2.5 13.5h15M5.5 13.5a4.5 4.5 0 0 1 9 0M10 4.2V6M4 7.6l1.3 1.2M16 7.6l-1.3 1.2M6.5 16.5h7"/></svg><span>Sky</span></button>
+    <button role="tab" data-tab="today" title="Today"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="3.4"/><path d="M10 2.2v1.9M10 15.9v1.9M2.2 10h1.9M15.9 10h1.9M4.5 4.5l1.3 1.3M14.2 14.2l1.3 1.3M4.5 15.5l1.3-1.3M14.2 5.8l1.3-1.3"/></svg><span>Today</span></button>
+    <button role="tab" data-tab="year" title="Year"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2.5 7.5c2.5-3 5-3 7.5 0s5 3 7.5 0M2.5 13.5c2.5-3 5-3 7.5 0s5 3 7.5 0"/></svg><span>Year</span></button>
+    <button role="tab" data-tab="events" title="Events"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 5.5h10M7 10h10M7 14.5h10"/><circle cx="3.5" cy="5.5" r=".6"/><circle cx="3.5" cy="10" r=".6"/><circle cx="3.5" cy="14.5" r=".6"/></svg><span>Events</span></button>
+    <button role="tab" class="wide" data-tab="all" title="Everything at once"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg><span>All</span></button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet gut" role="dialog" aria-modal="true" aria-label="Places">
+    <header><h2>Places</h2><div style="display:flex;gap:8px"><button class="btn" id="hereBtn">Use my location</button><button class="btn" id="doneBtn">Done</button></div></header>
+    <input id="q" type="search" placeholder="Add a city" autocomplete="off" aria-label="Search cities">
+    <div class="list" id="plist"></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(()=>{
+'use strict';
+/* ───────── Solar maths (standard low-precision almanac formulas) ───────── */
+const PI=Math.PI,rad=PI/180,DAY=864e5,HR=36e5,J1970=2440588,J2000=2451545,OB=rad*23.4397,J0=.0009;
+const sin=Math.sin,cos=Math.cos,tan=Math.tan,asin=Math.asin,acos=Math.acos,atan2=Math.atan2;
+const toDays=ts=>ts/DAY-.5+J1970-J2000, fromJ=j=>(j+.5-J1970)*DAY;
+const RA=(l,b)=>atan2(sin(l)*cos(OB)-tan(b)*sin(OB),cos(l));
+const DEC=(l,b)=>asin(sin(b)*cos(OB)+cos(b)*sin(OB)*sin(l));
+const sidereal=(d,lw)=>rad*(280.16+360.9856235*d)-lw;
+const anomaly=d=>rad*(357.5291+.98560028*d);
+const ecl=(M,d)=>M+rad*(1.9148*sin(M)+.02*sin(2*M)+.0003*sin(3*M))+rad*(102.9372+4.708e-5*d)+PI; // perihelion longitude drifts with precession
+function sunCoords(d){const L=ecl(anomaly(d),d);return{dec:DEC(L,0),ra:RA(L,0)}}
+function altAz(H,phi,dec){return{alt:asin(sin(phi)*sin(dec)+cos(phi)*cos(dec)*cos(H))/rad,az:((atan2(sin(H),cos(H)*sin(phi)-tan(dec)*cos(phi))/rad)+180+360)%360}}
+function sunPos(ts,lat,lng){const lw=rad*-lng,d=toDays(ts),c=sunCoords(d);return altAz(sidereal(d,lw)-c.ra,rad*lat,c.dec)}
+const ANG=[[-.833,'sunrise','sunset'],[-6,'dawn','dusk'],[-12,'nautDawn','nautDusk'],[-18,'astroDawn','astroDusk'],[6,'goldenEnd','golden'],[-4,'blueEnd','blueStart']];
+function sunTimes(ts,lat,lng){
+  const lw=rad*-lng,phi=rad*lat,d=toDays(ts),n=Math.round(d-J0-lw/(2*PI)),ds=J0+lw/(2*PI)+n;
+  const M=anomaly(ds),L=ecl(M,ds),dec=DEC(L,0),tr=a=>J2000+a+.0053*sin(M)-.0069*sin(2*L),Jn=tr(ds),r={noon:fromJ(Jn)};
+  for(const[a,up,dn]of ANG){
+    const c=(sin(a*rad)-sin(phi)*sin(dec))/(cos(phi)*cos(dec));
+    if(c<-1||c>1){r[up]=r[dn]=null;continue}
+    const Js=tr(J0+(acos(c)+lw)/(2*PI)+n);r[dn]=fromJ(Js);r[up]=fromJ(Jn-(Js-Jn));
+  }
+  return r;
+}
+function moonCoords(d){const L=rad*(218.316+13.176396*d),M=rad*(134.963+13.064993*d),F=rad*(93.272+13.22935*d),l=L+rad*6.289*sin(M),b=rad*5.128*sin(F);return{ra:RA(l,b),dec:DEC(l,b),dist:385001-20905*cos(M)}}
+function moonAlt(ts,lat,lng){const d=toDays(ts),c=moonCoords(d);return altAz(sidereal(d,rad*-lng)-c.ra,rad*lat,c.dec).alt}
+function moonPhase(ts){const d=toDays(ts),s=sunCoords(d),m=moonCoords(d),sd=149598000;
+  const phi=acos(sin(s.dec)*sin(m.dec)+cos(s.dec)*cos(m.dec)*cos(s.ra-m.ra)),inc=atan2(sd*sin(phi),m.dist-sd*cos(phi)),ang=atan2(cos(s.dec)*sin(s.ra-m.ra),sin(s.dec)*cos(m.dec)-cos(s.dec)*sin(m.dec)*cos(s.ra-m.ra));
+  return{frac:(1+cos(inc))/2,phase:.5+.5*inc*(ang<0?-1:1)/PI}}
+const sunLon=d=>(((ecl(anomaly(d),d)/rad)%360)+360)%360;
+function seasonPoint(year,k){let d=toDays(Date.UTC(year,0,1))+[79,171,265,355][k];for(let i=0;i<6;i++)d+=(((k*90-sunLon(d)+540)%360)-180)/.9856;return fromJ(d+J2000)}
+function apsis(year,far){const d0=toDays(Date.UTC(year,far?6:0,4)),o=far?180:0,k=Math.round((357.5291-o+.98560028*d0)/360);return fromJ((360*k+o-357.5291)/.98560028+J2000)}
+
+/* ───────── Time zones & formatting ───────── */
+const F={};
+const fmt=(tz,key,o)=>F[tz+key]||(F[tz+key]=new Intl.DateTimeFormat(undefined,{timeZone:tz,...o}));
+let H24=false;const tf=tz=>fmt(tz,'t'+H24,{hour:'numeric',minute:'2-digit',hourCycle:H24?'h23':'h12'});
+function tzOffset(ts,tz){
+  const p={};for(const x of fmt(tz,'o',{hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(ts))p[x.type]=+x.value;
+  return Math.round((Date.UTC(p.year,p.month-1,p.day,p.hour%24,p.minute,p.second)-Math.floor(ts/1e3)*1e3)/6e4);
+}
+function tH(ts,tz){if(ts==null)return'—';let s='',ap='';for(const x of tf(tz).formatToParts(ts)){if(x.type==='dayPeriod')ap=x.value;else if(x.type!=='literal'||x.value.trim())s+=x.value}return s.trim()+(ap?`<small>${ap}</small>`:'')}
+const dShort=(ts,tz)=>fmt(tz,'d',{weekday:'short',month:'short',day:'numeric'}).format(ts);
+const dLong=(ts,tz)=>fmt(tz,'D',{month:'long',day:'numeric'}).format(ts);
+const dMed=(ts,tz)=>fmt(tz,'m',{month:'short',day:'numeric'}).format(ts);
+const hourLbl=h=>H24?String(h).padStart(2,'0'):fmt('UTC','h',{hour:'numeric',hourCycle:'h12'}).format(Date.UTC(2000,0,1,h)).replace(/\s/g,' ');
+function dur(ms){const m=Math.max(0,Math.round(ms/6e4));if(m<60)return m+' min';const h=Math.floor(m/60);return h+' hr'+(m%60?' '+m%60+' min':'')}
+function durS(ms){const m=Math.round(ms/6e4);return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m'}
+function delta(ms){if(Math.abs(ms)>4*HR)return'—';const s=Math.round(Math.abs(ms)/1e3);return(ms<0?'−':'+')+(s>=60?Math.floor(s/60)+'m ':'')+s%60+'s'}
+const inDays=n=>n<=0?'Today':n===1?'Tomorrow':'in '+n+' days';
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ───────── Sky palette, keyed on solar altitude ───────── */
+const SKY=[
+ [-90,'#03040b','#04050f','#050713','#070a1a','#0a0e24','#8d9bff'],
+ [-18,'#03040c','#040611','#060918','#090d22','#0d122c','#8d9bff'],
+ [-12,'#050818','#091030','#0f1a44','#18245a','#283268','#9a8fff'],
+ [-8,'#0a1230','#142252','#23336f','#4c4280','#8c5273','#b497ff'],
+ [-5,'#101c48','#1f3270','#414c8e','#a06088','#ea7c50','#d6a2f0'],
+ [-2.5,'#16285e','#2c4a8e','#7470aa','#e48e7c','#f98f3c','#ffb38a'],
+ [-.5,'#1d3876','#3c66ac','#9ea4cc','#f7b47c','#fb8a34','#ffc078'],
+ [1.5,'#214487','#4a7cc0','#b6c2da','#f9d096','#fda544','#ffd27a'],
+ [4,'#2558a6','#5a94d6','#c2d8ea','#fbe4b6','#fdc777','#ffe0a0'],
+ [8,'#2a68c0','#62a2e2','#b4d6f2','#e6eee4','#f6e2b8','#cfe2ff'],
+ [15,'#2a6fd0','#5a9ce6','#96c6f2','#c2def6','#dcecf6','#a8d4ff'],
+ [40,'#1b5fc8','#3f8ae4','#6eb0f0','#9fcff6','#bee0f8','#9ccbff'],
+ [90,'#1857c0','#3b86e2','#6aadee','#9ccdf5','#bbdef7','#9ccbff']]
+  .map(r=>[r[0],...r.slice(1).map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)))]);
+const SUN=[[-3,'#ffb27a','#ff7a3d','#ee4526'],[-1,'#ffc48a','#ff8a3a','#ff5a2a'],[1.5,'#ffe0aa','#ffae48','#ff782c'],[6,'#fff3cf','#ffdc80','#ffb347'],[14,'#fffbea','#fff0b8','#ffd980'],[90,'#ffffff','#fff8dc','#ffecb0']]
+  .map(r=>[r[0],...r.slice(1).map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)))]);
+function interp(T,alt){let i=1;while(i<T.length-1&&T[i][0]<alt)i++;const a=T[i-1],b=T[i],t=clamp((alt-a[0])/(b[0]-a[0]),0,1);return a.slice(1).map((c,k)=>c.map((v,j)=>Math.round(v+(b[k+1][j]-v)*t)))}
+const sky=alt=>interp(SKY,alt);
+const rgb=(c,a)=>a==null?`rgb(${c})`:`rgba(${c},${a})`;
+const BANDS=[[-18,'--b-night','Night'],[-12,'--b-astro'],[-6,'--b-naut'],[-.833,'--b-civil'],[6,'--b-gold'],[99,'--b-day']];
+const css=getComputedStyle(document.documentElement),C={};for(const b of BANDS)C[b[1]]=css.getPropertyValue(b[1]).trim();
+const bandOf=alt=>BANDS.find(b=>alt<b[0])[1];
+function phaseName(alt,rising){
+  if(alt<-18)return['Night',''];if(alt<-12)return rising?['First','Light']:['Last','Light'];
+  if(alt<-6)return['Nautical',rising?'Dawn':'Dusk'];if(alt<-4)return['Blue','Hour'];
+  if(alt<-.833)return[rising?'Dawn':'Dusk',''];if(alt<6)return['Golden','Hour'];return['Daylight',''];
+}
+const SP=['March equinox','June solstice','September equinox','December solstice'];
+const EV=[['astroDawn','First light','Astronomical dawn','--violet'],['nautDawn','Nautical dawn','','--violet'],['dawn','Civil dawn','Blue hour begins','--blue'],['sunrise','Sunrise','','--sun'],['goldenEnd','Golden hour ends','','--gold'],['noon','Solar noon','Sun at its highest','--noon'],['golden','Golden hour','','--gold'],['sunset','Sunset','','--sun'],['dusk','Civil dusk','Blue hour ends','--blue'],['nautDusk','Nautical dusk','','--violet'],['astroDusk','Night','Astronomical dusk','--violet']];
+
+/* ───────── Places ───────── */
+const CITIES=`Amsterdam|Netherlands|52.37|4.9|Europe/Amsterdam
+Anchorage|United States|61.22|-149.9|America/Anchorage
+Athens|Greece|37.98|23.73|Europe/Athens
+Auckland|New Zealand|-36.85|174.76|Pacific/Auckland
+Bangkok|Thailand|13.76|100.5|Asia/Bangkok
+Barcelona|Spain|41.39|2.17|Europe/Madrid
+Beijing|China|39.9|116.4|Asia/Shanghai
+Berlin|Germany|52.52|13.4|Europe/Berlin
+Bogotá|Colombia|4.71|-74.07|America/Bogota
+Brussels|Belgium|50.85|4.35|Europe/Brussels
+Bucharest|Romania|44.43|26.1|Europe/Bucharest
+Budapest|Hungary|47.5|19.04|Europe/Budapest
+Buenos Aires|Argentina|-34.6|-58.38|America/Argentina/Buenos_Aires
+Cairo|Egypt|30.04|31.24|Africa/Cairo
+Cape Town|South Africa|-33.92|18.42|Africa/Johannesburg
+Chicago|United States|41.88|-87.63|America/Chicago
+Copenhagen|Denmark|55.68|12.57|Europe/Copenhagen
+Delhi|India|28.61|77.21|Asia/Kolkata
+Denver|United States|39.74|-104.99|America/Denver
+Dubai|United Arab Emirates|25.2|55.27|Asia/Dubai
+Dublin|Ireland|53.35|-6.26|Europe/Dublin
+Helsinki|Finland|60.17|24.94|Europe/Helsinki
+Hong Kong|China|22.32|114.17|Asia/Hong_Kong
+Honolulu|United States|21.31|-157.86|Pacific/Honolulu
+Istanbul|Türkiye|41.01|28.98|Europe/Istanbul
+Jakarta|Indonesia|-6.21|106.85|Asia/Jakarta
+Lagos|Nigeria|6.52|3.38|Africa/Lagos
+Lima|Peru|-12.05|-77.04|America/Lima
+Lisbon|Portugal|38.72|-9.14|Europe/Lisbon
+London|United Kingdom|51.51|-0.13|Europe/London
+Los Angeles|United States|34.05|-118.24|America/Los_Angeles
+Madrid|Spain|40.42|-3.7|Europe/Madrid
+Melbourne|Australia|-37.81|144.96|Australia/Melbourne
+Mexico City|Mexico|19.43|-99.13|America/Mexico_City
+Montréal|Canada|45.5|-73.57|America/Toronto
+Mumbai|India|19.08|72.88|Asia/Kolkata
+Nairobi|Kenya|-1.29|36.82|Africa/Nairobi
+New York|United States|40.71|-74.01|America/New_York
+Oslo|Norway|59.91|10.75|Europe/Oslo
+Paris|France|48.86|2.35|Europe/Paris
+Prague|Czechia|50.08|14.44|Europe/Prague
+Reykjavík|Iceland|64.15|-21.94|Atlantic/Reykjavik
+Rio de Janeiro|Brazil|-22.91|-43.17|America/Sao_Paulo
+Rome|Italy|41.9|12.5|Europe/Rome
+San Francisco|United States|37.77|-122.42|America/Los_Angeles
+Santiago|Chile|-33.45|-70.67|America/Santiago
+São Paulo|Brazil|-23.55|-46.63|America/Sao_Paulo
+Seattle|United States|47.61|-122.33|America/Los_Angeles
+Seoul|South Korea|37.57|126.98|Asia/Seoul
+Shanghai|China|31.23|121.47|Asia/Shanghai
+Singapore|Singapore|1.35|103.82|Asia/Singapore
+Stockholm|Sweden|59.33|18.07|Europe/Stockholm
+Sydney|Australia|-33.87|151.21|Australia/Sydney
+Tokyo|Japan|35.68|139.69|Asia/Tokyo
+Toronto|Canada|43.65|-79.38|America/Toronto
+Tromsø|Norway|69.65|18.96|Europe/Oslo
+Ushuaia|Argentina|-54.8|-68.3|America/Argentina/Ushuaia
+Vancouver|Canada|49.28|-123.12|America/Vancouver
+Vienna|Austria|48.21|16.37|Europe/Vienna
+Warsaw|Poland|52.23|21.01|Europe/Warsaw
+Zürich|Switzerland|47.38|8.54|Europe/Zurich`.split('\n').map(l=>{const[a,b,c,d,e]=l.split('|');return{id:a,name:a,country:b,lat:+c,lng:+d,tz:e}});
+const city=n=>CITIES.find(c=>c.name===n);
+let myTz='UTC';try{myTz=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(e){}
+const store={get(){try{return JSON.parse(localStorage.getItem('zenith.v1'))||{}}catch(e){return{}}},set(v){try{localStorage.setItem('zenith.v1',JSON.stringify(v))}catch(e){}}};
+const saved=store.get();
+const home=CITIES.find(c=>c.tz===myTz)||city('London');
+const S={
+  places:(saved.places&&saved.places.length?saved.places:[home,...['Tokyo','New York','Nairobi','Tromsø','Sydney'].map(city).filter(c=>c.id!==home.id)]),
+  loc:null,view:null,tab:saved.tab||'',anim:0,scrub:false
+};
+S.loc=S.places.find(p=>p.id===saved.sel)||S.places[0];
+try{H24=saved.h24??/h2[34]/.test(new Intl.DateTimeFormat(undefined,{hour:'numeric'}).resolvedOptions().hourCycle||'')}catch(e){}
+const persist=()=>store.set({places:S.places,sel:S.loc.id,tab:S.tab,h24:H24});
+const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const T=()=>S.view??Date.now();
+const $=id=>document.getElementById(id);
+
+/* ───────── Day and year models ───────── */
+const dayCache=new Map();
+function getDay(loc,ts){
+  const off=tzOffset(ts,loc.tz),wallMid=Math.floor((ts+off*6e4)/DAY)*DAY,start=wallMid-tzOffset(wallMid-off*6e4,loc.tz)*6e4,key=loc.id+start;
+  let d=dayCache.get(key);if(d)return d;
+  if(dayCache.size>500)dayCache.clear();
+  const t=sunTimes(start+DAY/2,loc.lat,loc.lng),pts=[];let mx=-90,mn=90;
+  for(let i=0;i<=96;i++){const p=sunPos(start+i*9e5,loc.lat,loc.lng);pts.push(p);mx=Math.max(mx,p.alt);mn=Math.min(mn,p.alt)}
+  const noonAlt=sunPos(t.noon,loc.lat,loc.lng).alt,len=x=>x.sunrise!=null?x.sunset-x.sunrise:(noonAlt>-.833?DAY:0);
+  const ev=EV.map(([k,label,sub,col])=>({k,label,sub,col,ts:t[k]})).filter(e=>e.ts!=null);
+  d={key,start,wallMid,t,pts,mx,mn,noonAlt,ev,len:len(t),prev:len(sunTimes(start-DAY/2,loc.lat,loc.lng))};
+  dayCache.set(key,d);return d;
+}
+const yearCache={};
+function yearTable(loc,year){
+  const key=loc.id+year;if(yearCache[key])return yearCache[key];
+  const days=[];let g=tzOffset(Date.UTC(year,0,1),loc.tz);
+  for(let w=Date.UTC(year,0,1);new Date(w).getUTCFullYear()===year;w+=DAY){
+    const off=tzOffset(w-g*6e4,loc.tz),start=w-off*6e4;g=off;
+    const no=tzOffset(start+DAY/2,loc.tz),t=sunTimes(start+DAY/2,loc.lat,loc.lng),h=k=>t[k]==null?null:(t[k]+no*6e4-w)/HR;
+    const noonAlt=sunPos(t.noon,loc.lat,loc.lng).alt;
+    days.push({w,start,no,noonAlt,noon:h('noon'),sr:h('sunrise'),ss:h('sunset'),cd:h('dawn'),cu:h('dusk'),nd:h('nautDawn'),nu:h('nautDusk'),ad:h('astroDawn'),au:h('astroDusk'),ge:h('goldenEnd'),gs:h('golden'),len:t.sunrise!=null?t.sunset-t.sunrise:(noonAlt>-.833?DAY:0)});
+  }
+  return yearCache[key]=days;
+}
+function yearly(loc,ts){
+  const y=new Date(ts+tzOffset(ts,loc.tz)*6e4).getUTCFullYear(),north=loc.lat>=0,out=[];
+  for(const yr of[y,y+1]){
+    const sp=k=>seasonPoint(yr,k);
+    out.push({label:'March equinox',sub:north?'Spring begins':'Autumn begins',ts:sp(0),col:'--blue'},{label:'June solstice',sub:north?'Longest day':'Shortest day',ts:sp(1),col:'--gold',feat:1},{label:'September equinox',sub:north?'Autumn begins':'Spring begins',ts:sp(2),col:'--blue'},{label:'December solstice',sub:north?'Shortest day':'Longest day',ts:sp(3),col:'--violet',feat:1},
+      {label:'Closest to the Sun',sub:'Perihelion, give or take a day',ts:apsis(yr,0),col:'--sun'},{label:'Farthest from the Sun',sub:'Aphelion, give or take a day',ts:apsis(yr,1),col:'--noon'});
+    const tb=yearTable(loc,yr),std=Math.min(...tb.map(d=>d.no));
+    tb.forEach((d,i)=>{if(i&&d.no!==tb[i-1].no)out.push({label:d.no>tb[i-1].no?'Clocks go forward':'Clocks go back',sub:'Daylight saving time '+(d.no>tb[i-1].no?'starts':'ends'),ts:d.start+DAY/2,col:'--noon'})});
+    if(tb.every(d=>d.sr!=null)){
+      const pick=(k,sign)=>tb.reduce((a,d)=>sign*(d[k]-(d.no-std)/60)<sign*(a[k]-(a.no-std)/60)?d:a);
+      const add=(label,d,col)=>out.push({label,sub:'',ts:d.start+DAY/2,col});
+      add('Earliest sunrise',pick('sr',1),'--sun');add('Latest sunset',pick('ss',-1),'--sun');add('Latest sunrise',pick('sr',-1),'--violet');add('Earliest sunset',pick('ss',1),'--violet');
+    }
+  }
+  const d0=getDay(loc,ts).start,seen=new Set();
+  return out.filter(e=>e.ts>=d0).sort((a,b)=>a.ts-b.ts).filter(e=>!seen.has(e.label)&&seen.add(e.label));
+}
+function season(loc,ts){
+  const y=new Date(ts).getUTCFullYear(),pts=[];for(const yr of[y-1,y,y+1])for(let k=0;k<4;k++)pts.push({ts:seasonPoint(yr,k),k});
+  const i=pts.findIndex(p=>p.ts>ts),a=pts[i-1],b=pts[i],N=['Spring','Summer','Autumn','Winter'],s=loc.lat>=0?0:2;
+  return{name:N[(a.k+s)%4],next:N[(b.k+s)%4],days:Math.ceil((b.ts-ts)/DAY),p:(ts-a.ts)/(b.ts-a.ts)};
+}
+
+/* ───────── Rendering ───────── */
+const memo={};const changed=(k,v)=>memo[k]===v?false:(memo[k]=v,true);
+const shown=el=>el.offsetParent!==null;
+const hero=$('hero'),curve=$('curve');
+let geo={W:0,H:0,hy:0,sc:1,xy:[]};
+
+function solarDay(day){if(day.sp===undefined){day.sp='';const yr=new Date(day.wallMid).getUTCFullYear();for(let k=0;k<4;k++)if(getDay(S.loc,seasonPoint(yr,k)).key===day.key)day.sp=SP[k]}return day.sp}
+function heroStatic(day){
+  const W=hero.clientWidth,H=hero.clientHeight;if(!W||!H)return;
+  const yr=new Date(day.wallMid).getUTCFullYear(),sol=[1,3].map(k=>({k,d:getDay(S.loc,seasonPoint(yr,k))})),hi=sol[0].d.mx>=sol[1].d.mx?sol[0]:sol[1];
+  const hy=Math.round(H*.62),foot=hero.querySelector('.hero-foot').offsetHeight,mx=Math.max(day.mx,sol[0].d.mx,sol[1].d.mx),mn=Math.min(day.mn,sol[0].d.mn,sol[1].d.mn),sc=Math.min(H*.3/Math.max(mx,24),Math.max(40,H-hy-foot-10)/Math.max(-mn,24));
+  const ghosts=sol.filter(o=>o.d.key!==day.key).map(o=>{const q=o.d.pts,t=q.reduce((a,b,i)=>b.alt>q[a].alt?i:a,0),gy=hy-q[t].alt*sc,ly=o===hi?gy-8:gy+(hy-gy)*.5+4;
+    return`<path d="M${q.map((v,i)=>(i/96*W).toFixed(1)+' '+(hy-v.alt*sc).toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-dasharray="1 6" stroke-linecap="round"/>`+(H>=460&&ly<hy-6?`<text x="${clamp(t/96*W,54,W-54).toFixed(1)}" y="${ly.toFixed(1)}" style="fill:rgba(255,255,255,.6)">${SP[o.k]}</text>`:'')}).join('');
+  const xy=day.pts.map((p,i)=>[i/96*W,hy-p.alt*sc]);geo={W,H,hy,sc,xy};
+  hero.style.setProperty('--hy',hy+'px');
+  const step=W<520?6:3;let ticks='';
+  for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
+  curve.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  curve.innerHTML=`${ghosts}<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 5"/>
+  <path id="past" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="0" x2="${W}" y1="${hy}" y2="${hy}" stroke="rgba(255,255,255,.28)"/>${ticks}
+  <line id="drop" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
+  <circle id="sun" r="6" fill="#0a0c14" stroke="rgba(255,255,255,.75)" stroke-width="1.5"/>`;
+  if(changed('stars',W+'x'+hy))drawStars(W,hy);
+}
+function drawStars(W,h){
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647,dpr=Math.min(devicePixelRatio||1,2);
+  for(const id of['st1','st2']){const c=$(id);c.width=W*dpr;c.height=h*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);
+    for(let i=0;i<Math.round(W*h/5200);i++){const r=rnd();x.globalAlpha=.25+rnd()*.75;x.fillStyle=r>.9?'#ffe2bd':r>.8?'#cfe0ff':'#fff';x.beginPath();x.arc(rnd()*W,rnd()*rnd()*h,.4+rnd()*rnd()*1.1,0,7);x.fill()}}
+}
+function renderHero(day,ts){
+  const loc=S.loc;
+  if(changed('heroS',day.key+hero.clientWidth+'x'+hero.clientHeight))heroStatic(day);
+  const{W,hy,sc,xy}=geo;if(!W)return;
+  const f=clamp((ts-day.start)/DAY,0,1),pos=sunPos(ts,loc.lat,loc.lng),rising=sunPos(ts+6e4,loc.lat,loc.lng).alt>pos.alt;
+  const sx=f*W,sy=hy-pos.alt*sc,n=Math.floor(f*96);
+  $('past').setAttribute('d','M'+xy.slice(0,n+1).map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+`L${sx.toFixed(1)} ${sy.toFixed(1)}`);
+  const a=pos.alt,up=a>-.833,sun=$('sun'),drop=$('drop'),st=hero.style,set=(k,v)=>st.setProperty(k,v);
+  const low=clamp(1-a/12,0,1),ds=clamp(Math.min(W,geo.H)*.05,22,36)*(1+.45*low);
+  sun.setAttribute('cx',sx);sun.setAttribute('cy',sy);sun.setAttribute('opacity',up?0:1);
+  drop.setAttribute('x1',sx);drop.setAttribute('x2',sx);drop.setAttribute('y1',up?Math.min(hy,sy+ds/2+4):Math.max(hy,sy-9));drop.setAttribute('y2',hy);
+  const[top,upr,mid,lo,hor,acc]=sky(a),[d0,d1,d2]=interp(SUN,a),edge=clamp(1-Math.abs(a+.5)/9,0,1),refl=clamp(1-Math.abs(a-1)/9,0,1);
+  set('--s-top',rgb(top));set('--s-up',rgb(upr));set('--s-mid',rgb(mid));set('--s-low',rgb(lo));set('--venus',rgb([228,140,178],(clamp(1-Math.abs(a+2)/5,0,1)*.38).toFixed(3)));set('--s-hor',rgb(hor));set('--g-top',rgb(hor.map(v=>Math.round(v*.2))));
+  set('--sx',sx+'px');set('--sy',sy+'px');set('--ds',ds.toFixed(1)+'px');set('--sq',(1-.12*clamp(1-a/3,0,1)).toFixed(3));
+  set('--d0',rgb(d0));set('--d1',rgb(d1));set('--d2',rgb(d2));set('--d3',rgb(d2,.5));set('--disc-a',clamp((a+2.6)/1.2,0,1));
+  set('--glow',rgb(d1,.6));set('--glow2',rgb(d2,.42+.2*low));set('--glow-a',clamp((a+6)/6,0,1));
+  set('--hglow',rgb([255,178,92],(edge*.85).toFixed(3)));set('--hglow2',rgb([255,92,48],(edge*.6).toFixed(3)));
+  set('--refl',rgb(d1,(refl*.5).toFixed(3)));set('--refl2',rgb(d2,(refl*.26).toFixed(3)));
+  set('--stars',clamp((-a-5)/9,0,1));
+  const root=document.documentElement.style;
+  root.setProperty('--accent',rgb(acc));root.setProperty('--pane',rgb(top.map((v,i)=>Math.round(v*.2+[5,7,13][i]))));
+  // headline
+  const[p1,p2]=phaseName(pos.alt,rising);
+  if(changed('ph',p1+p2))$('hPhase').innerHTML=esc(p1)+(p2?' <i>'+esc(p2)+'</i>':'');
+  if(changed('hd',Math.floor(ts/6e4)+loc.id))$('hDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)+(solarDay(day)?' · '+solarDay(day):'');
+  const nx=[getDay(loc,day.start-DAY/2),day,getDay(loc,day.start+DAY*1.5)].flatMap(d=>d.ev).sort((a,b)=>a.ts-b.ts).find(e=>e.ts>ts);
+  const nt=nx?`${esc(nx.label)} in <b>${dur(nx.ts-ts)}</b>`:(day.noonAlt>0?'The sun stays up all day':'The sun stays down all day');
+  if(changed('nx',nt))$('hNext').innerHTML=nt;
+  const t=day.t,left=t.sunrise==null?(day.len?1:0):clamp((t.sunset-ts)/(t.sunset-t.sunrise),0,1),pct=Math.round(left*100);
+  if(changed('rg',pct)){$('ringFg').style.strokeDashoffset=100-pct;$('ringTxt').textContent=pct+'% left'}
+  if(changed('ft',day.key)){$('fRise').innerHTML=tH(t.sunrise,loc.tz);$('fSet').innerHTML=tH(t.sunset,loc.tz);$('fLen').textContent=durS(day.len)}
+  if(changed('ln',loc.id))$('locName').textContent=loc.name;
+  hero.setAttribute('aria-valuenow',(f*24).toFixed(2));hero.setAttribute('aria-valuetext',tf(loc.tz).format(ts)+', '+p1+' '+p2);
+  
+}
+
+const DIR=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+function moonSVG(ph,south,size){
+  const r=size/2-2,k=ph<.5?ph:1-ph,rx=Math.abs(cos(2*PI*k))*r,flip=(ph>.5)!==south;
+  return`<svg width="${size}" height="${size}" viewBox="${-size/2} ${-size/2} ${size} ${size}" aria-hidden="true"><defs><radialGradient id="mg" cx=".4" cy=".35"><stop offset="0" stop-color="#fffdf4"/><stop offset="1" stop-color="#c9cbd6"/></radialGradient></defs><circle r="${r}" fill="#1c2030" stroke="rgba(255,255,255,.14)"/><path transform="scale(${flip?-1:1},1)" d="M0 ${-r}A${r} ${r} 0 0 1 0 ${r}A${rx.toFixed(2)} ${r} 0 0 ${k<.25?0:1} 0 ${-r}Z" fill="url(#mg)"/></svg>`;
+}
+const moonName=p=>p<.03||p>.97?'New Moon':p<.22?'Waxing Crescent':p<.28?'First Quarter':p<.47?'Waxing Gibbous':p<.53?'Full Moon':p<.72?'Waning Gibbous':p<.78?'Last Quarter':'Waning Crescent';
+function moonTimes(day,loc){
+  if(day.moon)return day.moon;let rise=null,set=null,prev=moonAlt(day.start,loc.lat,loc.lng)-.125;
+  for(let i=1;i<=144;i++){const ts=day.start+i*6e5,a=moonAlt(ts,loc.lat,loc.lng)-.125;if(prev<0&&a>=0&&rise==null)rise=ts-6e5*a/(a-prev);if(prev>=0&&a<0&&set==null)set=ts-6e5*a/(a-prev);prev=a}
+  return day.moon={rise,set};
+}
+function renderOverview(day,ts){
+  const loc=S.loc,tz=loc.tz,t=day.t,min=Math.floor(ts/6e4);
+  if(changed('ovD',day.key)){
+    let stops=[],last=null;day.pts.forEach((p,i)=>{const c=C[bandOf(p.alt)],x=(Math.max(0,i-.5)/96*100).toFixed(2);if(c!==last){if(last)stops.push(`${last} ${x}%`);stops.push(`${c} ${x}%`);last=c}});stops.push(last+' 100%');
+    const d=day.len-day.prev;
+    $('cLight').innerHTML=`<h3>Light today</h3><div class="bar" style="background:linear-gradient(90deg,${stops.join(',')})"><i id="barNow"></i></div>
+    <div class="scale"><span>${hourLbl(0)}</span><span>${hourLbl(6)}</span><span>${hourLbl(12)}</span><span>${hourLbl(18)}</span><span>${hourLbl(0)}</span></div>
+    <div class="stats"><div><span class="k">Sunrise</span><span class="v">${tH(t.sunrise,tz)}</span></div><div><span class="k">Solar noon</span><span class="v">${tH(t.noon,tz)}</span></div><div><span class="k">Sunset</span><span class="v">${tH(t.sunset,tz)}</span></div><div><span class="k">Daylight</span><span class="v">${durS(day.len)}</span></div><div><span class="k">vs yesterday</span><span class="v ${d<0?'down':'up'}">${delta(d)}</span></div></div>`;
+    const row=(c,l,a,b)=>a==null||b==null?'':`<div><span><i style="background:var(${c})"></i>${l}</span><b>${tH(a,tz)} – ${tH(b,tz)}</b></div>`;
+    $('cHours').innerHTML=`<h3>Photographer's light</h3><div class="mini">${row('--blue','Morning blue hour',t.dawn,t.blueEnd)}${row('--gold','Morning golden hour',t.sunrise,t.goldenEnd)}${row('--gold','Evening golden hour',t.golden,t.sunset)}${row('--blue','Evening blue hour',t.blueStart,t.dusk)}</div>`||'';
+    if(!t.dawn&&!t.sunrise&&!t.golden)$('cHours').innerHTML=`<h3>Photographer's light</h3><p class="sub" style="margin:0">No golden or blue hour here today. The sun never crosses the horizon.</p>`;
+    const mp=moonPhase(day.start+DAY/2),mt=moonTimes(day,loc);
+    $('cMoon').innerHTML=`<h3>Moon</h3><div class="split"><div><div class="big">${moonName(mp.phase)}</div><div class="sub">${Math.round(mp.frac*100)}% illuminated</div></div>${moonSVG(mp.phase,loc.lat<0,64)}</div>
+    <div class="stats"><div><span class="k">Moonrise</span><span class="v">${tH(mt.rise,tz)}</span></div><div><span class="k">Moonset</span><span class="v">${tH(mt.set,tz)}</span></div></div>`;
+    {const yr=new Date(day.wallMid).getUTCFullYear(),tb=yearTable(loc,yr),N=tb.length,north=loc.lat>=0;
+    const nxt=[yr,yr+1].flatMap(y=>[1,3].map(k=>({k,ts:seasonPoint(y,k)}))).map(o=>({...o,d:getDay(loc,o.ts)})).find(o=>o.d.start>=day.start),nd=Math.round((nxt.d.wallMid-day.wallMid)/DAY);
+    const idx=w=>clamp(Math.round((w-tb[0].w)/DAY),0,N-1),iJ=idx(getDay(loc,seasonPoint(yr,1)).wallMid),iD=idx(getDay(loc,seasonPoint(yr,3)).wallMid),iT=idx(day.wallMid);
+    const px=i=>(i/(N-1)*100).toFixed(2),lo=Math.min(...tb.map(d=>d.len)),span=Math.max(...tb.map(d=>d.len))-lo||1,py=l=>52-(l-lo)/span*44;let line='';for(let i=0;i<N;i+=3)line+=(line?'L':'M')+px(i)+' '+py(tb[i].len).toFixed(1);line+='L100 '+py(tb[N-1].len).toFixed(1);
+    const dot=(i,c,now)=>`<i style="left:${px(i)}%;top:${(py(tb[i].len)/60*100).toFixed(1)}%;background:${c}"${now?' class="now"':''}></i>`;
+    const cmp=i=>{const df=day.len-tb[i].len;return Math.abs(df)<6e4?'the same daylight as':dur(Math.abs(df))+(df>0?' more':' less')+' daylight than'};
+    const lab=i=>dMed(tb[i].start+DAY/2,tz)+' · '+durS(tb[i].len);
+    $('cSol').innerHTML=`<h3>Solstices</h3><div class="big">${SP[nxt.k]} <i>${inDays(nd).toLowerCase()}</i></div>
+    <div class="sub">${dShort(nxt.d.start+DAY/2,tz)} · the ${(nxt.k===1)===north?'longest':'shortest'} day of the year, ${durS(nxt.d.len)} of daylight</div>
+    <div class="wave"><svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,209,102,.38)"/><stop offset="1" stop-color="rgba(255,209,102,0)"/></linearGradient></defs><path d="${line}L100 60L0 60Z" fill="url(#wg)"/><path d="${line}" fill="none" stroke="#ffd166" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>${dot(iJ,'var(--gold)')}${dot(iD,'var(--violet)')}${dot(iT,'#fff',1)}</div>
+    <div class="wlab"><span style="left:${px(iJ)}%">${lab(iJ)}</span><span class="r">${lab(iD)}</span></div>
+    <p class="sub" style="margin:12px 0 0">This day has ${cmp(iD)} the December solstice and ${cmp(iJ)} the June solstice.</p>`;}
+    const se=season(loc,ts),d2=day.len-day.prev;
+    $('cSeason').innerHTML=`<h3>Season</h3><div class="big">${se.name}</div><div class="sub">${se.next} begins ${inDays(se.days)}</div><div class="prog"><i style="width:${(se.p*100).toFixed(1)}%"></i></div>
+    <p class="sub" style="margin:14px 0 0">${Math.abs(d2)>4*HR?'The sun is crossing between polar day and night.':Math.abs(d2)<1500?'Day length is barely changing.':`Days are getting ${d2>0?'longer':'shorter'} by ${delta(d2).slice(1)} a day.`}</p>`;
+  }
+  const bn=$('barNow');if(bn)bn.style.left=clamp((ts-day.start)/DAY*100,0,100)+'%';
+  if(changed('ovP',day.key+min)){
+    const pos=sunPos(ts,loc.lat,loc.lng),R=62,pt=p=>{const r=(90-Math.max(p.alt,0))/90*R,a=p.az*rad;return[(r*sin(a)).toFixed(1),(-r*cos(a)).toFixed(1)]};
+    const segs=[];let cur=null;day.pts.forEach(p=>{if(p.alt>0){(cur||(segs.push(cur=[]),cur)).push(pt(p).join(' '))}else cur=null});
+    const[sx,sy]=pt(pos),up=pos.alt>0;
+    $('cPath').innerHTML=`<h3>Sun position</h3><div class="split"><div><div class="big">${up?Math.round(pos.alt)+'° up':Math.round(-pos.alt)+'° below'}</div><div class="sub">${Math.round(pos.az)}° ${DIR[Math.round(pos.az/22.5)%16]}</div><div class="sub" style="margin-top:10px">${up&&pos.alt<89?`Shadows ${pos.alt<1?'stretch very long':(1/tan(pos.alt*rad)).toFixed(1)+'× your height'}`:'Sun is below the horizon'}</div></div>
+    <svg width="150" height="150" viewBox="-75 -75 150 150" aria-hidden="true" style="flex:none"><circle r="${R}" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.22)"/><circle r="${R*2/3}" fill="none" stroke="rgba(255,255,255,.09)"/><circle r="${R/3}" fill="none" stroke="rgba(255,255,255,.09)"/><path d="M0 ${-R}V${R}M${-R} 0H${R}" stroke="rgba(255,255,255,.09)"/>
+    ${segs.map(s=>`<path d="M${s.join('L')}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>`).join('')}
+    <g font-size="9" font-weight="600" fill="rgba(255,255,255,.5)" text-anchor="middle"><text y="${-R-4}" fill="var(--sun)">N</text><text y="${R+11}">S</text><text x="${R+7}" y="3">E</text><text x="${-R-7}" y="3">W</text></g>
+    <circle cx="${sx}" cy="${sy}" r="${up?6:4}" fill="${up?'#fff':'none'}" stroke="${up?'rgba(255,255,255,.35)':'rgba(255,255,255,.6)'}" stroke-width="${up?5:1.5}"/></svg></div>`;
+  }
+}
+function renderEvents(day,ts){
+  const loc=S.loc,tz=loc.tz,min=Math.floor(ts/6e4);
+  if(changed('evD',day.key+min+(S.view==null))){
+    $('eDate').textContent=dLong(ts,tz);let h='',put=false;
+    const now=`<div class="nowline">${S.view==null?'Now':''} ${tH(ts,tz)}</div>`;
+    for(const e of day.ev){if(!put&&e.ts>ts){h+=now;put=true}
+      h+=`<div class="row${e.ts<=ts?' past':''}"><i class="dot" style="color:var(${e.col})"></i><div class="l"><span>${e.label}</span>${e.sub?`<em>${e.sub}</em>`:''}</div><div class="t">${tH(e.ts,tz)}</div></div>`}
+    if(!put)h+=now;
+    if(!day.ev.some(e=>e.k==='sunrise'))h+=`<div class="row"><div class="l"><em>${day.noonAlt>-.833?'Midnight sun: the sun does not set today.':'Polar night: the sun does not rise today.'}</em></div></div>`;
+    $('eDay').innerHTML=h;
+  }
+  if(changed('evY',day.key)){
+    $('eYear').innerHTML=yearly(loc,ts).map(e=>{const n=Math.round((getDay(loc,e.ts).wallMid-day.wallMid)/DAY);
+      const sub=e.feat?e.sub+' · '+durS(getDay(loc,e.ts).len)+' of daylight':e.sub;
+      return`<div class="row${e.feat?' feat':''}"><i class="dot" style="color:var(${e.col})"></i><div class="l"><span>${e.label}</span>${sub?`<em>${sub}</em>`:''}</div><div class="t">${dMed(e.ts,tz)}<em>${inDays(n)}</em></div></div>`}).join('');
+  }
+}
+const chart=$('chart'),box=$('chartbox');let cg=null;
+function renderYear(day,ts){
+  const loc=S.loc,year=new Date(day.wallMid).getUTCFullYear(),tb=yearTable(loc,year),n=tb.length;
+  const sel=clamp(Math.round((day.wallMid-tb[0].w)/DAY),0,n-1),today=Math.round((getDay(loc,Date.now()).wallMid-tb[0].w)/DAY);
+  const W=box.clientWidth,H=box.clientHeight;if(!W||!H)return;
+  if(changed('yr',loc.id+year+sel+'|'+today+W+'x'+H)){
+    const dpr=Math.min(devicePixelRatio||1,2);chart.width=W*dpr;chart.height=H*dpr;const x=chart.getContext('2d');x.scale(dpr,dpr);
+    const L=38,Tp=26,w=W-L-10,h=H-Tp-12,X=i=>L+i/(n-1)*w,Y=v=>Tp+clamp(v,0,24)/24*h;cg={L,w,n,tb};
+    x.fillStyle=C['--b-night'];x.fillRect(0,0,W,H);
+    x.save();x.beginPath();x.rect(L,Tp,w,h);x.clip();
+    const Yr=v=>Tp+v/24*h,band=(lo,hi,thr,fill)=>{x.fillStyle=fill;for(const o of[-24,0,24]){x.beginPath();tb.forEach((d,i)=>x.lineTo(X(i),Yr(o+(d[lo]??(d.noonAlt>thr?0:d.noon)))));for(let i=n-1;i>=0;i--){const d=tb[i];x.lineTo(X(i),Yr(o+(d[hi]??(d.noonAlt>thr?24:d.noon))))}x.closePath();x.fill()}};
+    band('ad','au',-18,C['--b-astro']);band('nd','nu',-12,C['--b-naut']);band('cd','cu',-6,C['--b-civil']);band('sr','ss',-.833,C['--b-gold']);
+    const g=x.createLinearGradient(0,Tp,0,Tp+h);g.addColorStop(.15,'#6dbaf5');g.addColorStop(.5,'#3f8fe4');g.addColorStop(.85,'#6dbaf5');band('ge','gs',6,g);
+    x.beginPath();tb.forEach((d,i)=>x.lineTo(X(i),Y(d.noon)));x.strokeStyle='rgba(255,255,255,.4)';x.lineWidth=1;x.stroke();
+    x.restore();
+    x.font='500 10px Geist,system-ui,sans-serif';x.textBaseline='middle';
+    x.strokeStyle='rgba(255,255,255,.08)';x.fillStyle='rgba(255,255,255,.55)';x.textAlign='right';
+    for(let hh=0;hh<=24;hh+=3){const y=Y(hh);if(hh%6===0||H>380){x.beginPath();x.moveTo(L,y);x.lineTo(L+w,y);x.stroke();if(hh%6===0||H>460)x.fillText(hourLbl(hh%24),L-6,y)}}
+    x.textAlign='center';
+    for(let m=0;m<12;m++){const i0=Math.round((Date.UTC(year,m,1)-tb[0].w)/DAY),i1=Math.round((Date.UTC(year,m+1,1)-tb[0].w)/DAY);
+      if(m){x.beginPath();x.moveTo(X(i0),Tp);x.lineTo(X(i0),Tp+h);x.stroke()}
+      const nm=fmt('UTC','M',{month:'short'}).format(Date.UTC(year,m,15));x.fillText(w<430?nm.slice(0,1):nm,X((i0+Math.min(i1,n-1))/2),13)}
+    for(let k=0;k<4;k++){const i=Math.round((getDay(loc,seasonPoint(year,k)).wallMid-tb[0].w)/DAY);if(i<0||i>=n)continue;const px=X(i);
+      if(k%2){x.strokeStyle='rgba(255,214,120,.7)';x.lineWidth=1;x.setLineDash([3,3]);x.beginPath();x.moveTo(px,Tp);x.lineTo(px,Tp+h);x.stroke();x.setLineDash([]);
+        const al=px>L+w-64?'right':px<L+64?'left':'center';x.textAlign=al;x.fillStyle='rgba(255,228,170,.95)';x.fillText(dMed(tb[i].start+DAY/2,loc.tz)+' solstice',px+(al==='right'?-6:al==='left'?6:0),Tp+h-11)}
+      x.fillStyle=k%2?'#ffd166':'rgba(255,255,255,.7)';x.beginPath();x.moveTo(px,Tp-4);x.lineTo(px+4,Tp);x.lineTo(px,Tp+4);x.lineTo(px-4,Tp);x.fill()}
+    const mark=(i,a,dots)=>{if(i<0||i>=n)return;const d=tb[i],px=X(i);x.strokeStyle=`rgba(255,255,255,${a})`;x.lineWidth=dots?1.5:1;x.setLineDash(dots?[]:[2,4]);x.beginPath();x.moveTo(px,Tp);x.lineTo(px,Tp+h);x.stroke();x.setLineDash([]);
+      if(dots)for(const v of[d.sr,d.ss])if(v!=null){x.beginPath();x.arc(px,Y(v),4.500,0,7);x.fillStyle='#fff';x.fill();x.strokeStyle='rgba(0,0,0,.35)';x.lineWidth=1;x.stroke()}};
+    if(today!==sel)mark(today,.55,false);mark(sel,.95,true);
+  }
+  if(changed('yrT',loc.id+day.key)){
+    const d=tb[sel],df=day.len-day.prev;
+    $('yK').textContent='Daylight through '+year;$('yDate').textContent=dLong(d.start+DAY/2,loc.tz);
+    $('yDelta').innerHTML=`<b style="font-size:17px;font-weight:500;color:var(--ink)">${durS(day.len)}</b><br><span class="${df<0?'down':'up'}">${delta(df)}</span> vs day before`;
+    const mx=tb.reduce((a,b)=>b.len>a.len?b:a),mn=tb.reduce((a,b)=>b.len<a.len?b:a);
+    $('cYear').innerHTML=`<div class="stats" style="margin-top:0"><div><span class="k">Sunrise</span><span class="v">${tH(day.t.sunrise,loc.tz)}</span></div><div><span class="k">Sunset</span><span class="v">${tH(day.t.sunset,loc.tz)}</span></div><div><span class="k">Longest day</span><span class="v">${durS(mx.len)}</span><span class="sub">${dMed(mx.start+DAY/2,loc.tz)}</span></div><div><span class="k">Shortest day</span><span class="v">${durS(mn.len)}</span><span class="sub">${dMed(mn.start+DAY/2,loc.tz)}</span></div></div>`;
+  }
+}
+function render(){
+  const ts=T(),day=getDay(S.loc,ts);
+  if(shown(hero))renderHero(day,ts);else{const k=sky(sunPos(ts,S.loc.lat,S.loc.lng).alt),top=k[0],acc=k[5],r=document.documentElement.style;r.setProperty('--accent',rgb(acc));r.setProperty('--pane',rgb(top.map((v,i)=>Math.round(v*.2+[5,7,13][i]))))}
+  const live=S.view==null||!!S.anim||S.scrub;if(changed('live',live)){$('backBtn').hidden=live;document.querySelectorAll('[data-now]').forEach(b=>b.hidden=live)}
+  if(shown($('overview')))renderOverview(day,ts);
+  if(shown($('events')))renderEvents(day,ts);
+  if(shown($('year')))renderYear(day,ts);
+}
+let queued=0;const schedule=()=>{if(!queued)queued=requestAnimationFrame(()=>{queued=0;render()})};
+
+/* ───────── Motion: travel through time ───────── */
+function travel(target,ms=1000){
+  cancelAnimationFrame(S.anim);S.anim=0;
+  if(reduced){S.view=target;render();return}
+  const from=T(),t0=performance.now();
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/ms),e=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2,to=target??Date.now(),dd=Math.round((to-from)/DAY);
+    S.view=Math.abs(to-from)<DAY*1.5?from+(to-from)*e:from+Math.round(dd*e)*DAY+(to-from-dd*DAY)*e;
+    if(p<1)S.anim=requestAnimationFrame(step);else{S.view=target;S.anim=0}
+    render();
+  };
+  S.anim=requestAnimationFrame(step);
+}
+function setView(ts){cancelAnimationFrame(S.anim);S.anim=0;S.view=ts;schedule()}
+
+/* ───────── Interaction ───────── */
+const wideMQ=matchMedia('(min-width:1240px)');
+function setTab(tab,keep){
+  S.tab=tab;const eff=tab==='all'&&!wideMQ.matches?'today':tab;$('app').dataset.tab=eff;
+  [...$('tabs').children].forEach((b,i)=>{const on=b.dataset.tab===eff;b.setAttribute('aria-selected',on);if(on)$('tabs').style.setProperty('--i',i)});
+  persist();if(!keep){$('app').scrollTop=0;$('pane').scrollTop=0}render();
+}
+wideMQ.addEventListener('change',()=>setTab(S.tab,true));
+function setClock(v){H24=v;for(const k in memo)delete memo[k];$('hcBtn').textContent=H24?'24h':'12h';persist();render()}
+$('hcBtn').addEventListener('click',()=>setClock(!H24));
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.tab)});
+
+let drag=null;
+hero.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag={x:e.clientX,y:e.clientY,on:e.pointerType==='mouse',id:e.pointerId};if(drag.on){S.scrub=true;hero.setPointerCapture(e.pointerId);scrubTo(e)}});
+hero.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.on){const dx=Math.abs(e.clientX-drag.x),dy=Math.abs(e.clientY-drag.y);if(dx>8&&dx>dy){drag.on=true;S.scrub=true;try{hero.setPointerCapture(drag.id)}catch(_){}}else if(dy>10){drag=null;return}}if(drag.on)scrubTo(e)});
+const endDrag=e=>{if(!drag)return;if(!drag.on&&e.type==='pointerup'&&Math.abs(e.clientX-drag.x)<8)scrubTo(e);drag=null;S.scrub=false;schedule()};
+hero.addEventListener('pointerup',endDrag);hero.addEventListener('pointercancel',endDrag);
+function scrubTo(e){const r=hero.getBoundingClientRect(),day=getDay(S.loc,T());$('hint').classList.add('off');setView(day.start+clamp((e.clientX-r.left)/r.width,0,.9999)*DAY)}
+hero.addEventListener('keydown',e=>{const k={ArrowLeft:-6e5,ArrowRight:6e5,ArrowDown:-HR,ArrowUp:HR,PageDown:-DAY,PageUp:DAY}[e.key];if(k){e.preventDefault();$('hint').classList.add('off');setView(T()+k)}else if(e.key==='Escape'||e.key==='Home'){travel(null)}});
+document.addEventListener('click',e=>{if(e.target.closest('#backBtn,[data-now]'))travel(null,1100)});
+
+let cdrag=false;
+const pick=e=>{if(!cg)return;const r=box.getBoundingClientRect(),i=clamp(Math.round((e.clientX-r.left-cg.L)/cg.w*(cg.n-1)),0,cg.n-1),day=getDay(S.loc,T());setView(cg.tb[i].start+(T()-day.start))};
+box.addEventListener('pointerdown',e=>{cdrag=true;try{box.setPointerCapture(e.pointerId)}catch(_){}pick(e)});
+box.addEventListener('pointermove',e=>{if(cdrag)pick(e)});
+for(const ev of['pointerup','pointercancel'])box.addEventListener(ev,()=>cdrag=false);
+
+/* Places */
+const scrim=$('scrim'),q=$('q');
+function placeRow(p,i,isSaved){
+  const now=Date.now(),pos=sunPos(now,p.lat,p.lng),[top,,,,hor]=sky(pos.alt),[a,b]=phaseName(pos.alt,sunPos(now+6e4,p.lat,p.lng).alt>pos.alt);
+  return`<div class="place" ${isSaved&&p.id===S.loc.id?'aria-current="true"':''}><button data-${isSaved?'sel':'add'}="${esc(p.id)}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left"><i class="orb" style="background:linear-gradient(${rgb(top)},${rgb(hor)})"></i><span class="l"><b>${esc(p.name)}</b><em>${esc(p.country)}</em></span><span class="t">${tH(now,p.tz)}<em>${a} ${b}</em></span></button>${isSaved&&S.places.length>1?`<button class="rm" data-rm="${esc(p.id)}" aria-label="Remove ${esc(p.name)}">×</button>`:''}</div>`;
+}
+function renderPlaces(){
+  const s=q.value.trim().toLowerCase();
+  if(!s){$('plist').innerHTML=S.places.map((p,i)=>placeRow(p,i,true)).join('');return}
+  const hits=CITIES.filter(c=>(c.name+' '+c.country).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(s.normalize('NFD').replace(/[̀-ͯ]/g,''))).slice(0,12);
+  $('plist').innerHTML=hits.length?hits.map((p,i)=>placeRow(p,i,false)).join(''):`<p class="sub" style="padding:14px 4px">No city matches “${esc(q.value)}”. Try a larger city nearby.</p>`;
+}
+function choose(p){S.loc=p;persist();closeSheet();travel(S.view,1)}
+const openSheet=()=>{q.value='';scrim.hidden=false;renderPlaces()},closeSheet=()=>{scrim.hidden=true;$('locBtn').focus()};
+$('locBtn').addEventListener('click',openSheet);$('doneBtn').addEventListener('click',closeSheet);
+scrim.addEventListener('click',e=>{if(e.target===scrim)closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!scrim.hidden)closeSheet()});
+q.addEventListener('input',renderPlaces);
+$('plist').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.sel)choose(S.places.find(p=>p.id===d.sel));
+  else if(d.add){const c=S.places.find(p=>p.id===d.add)||CITIES.find(p=>p.id===d.add);if(!S.places.includes(c))S.places.unshift(c);choose(c)}
+  else if(d.rm){S.places=S.places.filter(p=>p.id!==d.rm);if(S.loc.id===d.rm)S.loc=S.places[0];persist();renderPlaces();render()}
+});
+let toastT;const toast=m=>{const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,4200)};
+$('hereBtn').addEventListener('click',()=>{
+  const fail=()=>toast('Your location isn’t available here. Pick a city instead.');
+  try{navigator.geolocation.getCurrentPosition(g=>{
+    const{latitude:lat,longitude:lng}=g.coords,near=CITIES.map(c=>[Math.hypot(c.lat-lat,(c.lng-lng)*cos(lat*rad)),c]).sort((a,b)=>a[0]-b[0])[0];
+    const p={id:'here',name:near[0]<.6?near[1].name:lat.toFixed(2)+'°, '+lng.toFixed(2)+'°',country:'Current location',lat,lng,tz:myTz};
+    dayCache.clear();for(const k in yearCache)if(k.startsWith('here'))delete yearCache[k];for(const k in memo)delete memo[k];
+    S.places=[p,...S.places.filter(x=>x.id!=='here')];choose(p);
+  },fail,{timeout:8000,maximumAge:6e5})}catch(e){fail()}
+});
+
+/* ───────── Boot ───────── */
+new ResizeObserver(schedule).observe(hero);new ResizeObserver(schedule).observe(box);
+setInterval(()=>{if(S.view==null&&!S.anim&&!document.hidden)render()},1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
+$('hcBtn').textContent=H24?'24h':'12h';
+setTab(['sky','today','year','events','all'].includes(S.tab)?S.tab:(wideMQ.matches?'all':'today'));
+if(!reduced){S.view=getDay(S.loc,Date.now()).start;render();travel(null,2400)}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=null;schedule()});
+})();
+</script>
+
+</body></html>
