@@ -142,9 +142,14 @@ h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
 .wlab{position:relative;height:18px;margin-top:8px;font-size:11px;font-weight:500;color:var(--ink-2)}
 .wlab span{position:absolute;transform:translateX(-50%);white-space:nowrap}
 .wlab .r{right:0;transform:none}
-.row.feat{padding-block:16px}
-.row.feat .l span{font:400 23px/1.1 var(--display)}
-.row.feat .dot{width:12px;height:12px}
+.row svg{flex:none;margin:0 -4.5px}
+.turn{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:8px}
+.tp{display:grid;justify-items:start;align-content:start;gap:2px;text-align:left;padding:12px;border-radius:16px;border:1px solid transparent;transition:background .2s,border-color .2s}
+.tp:hover{background:var(--card-2)}
+.tp.on{background:var(--card);border-color:var(--line);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+.tp svg{margin-bottom:8px}
+.tp .tn{font-size:12px;color:var(--ink-2)}
+.tp .td{font-size:19px;font-weight:500}
 .prog{height:5px;border-radius:3px;background:var(--card-2);margin-top:14px;overflow:hidden}
 .prog i{display:block;height:100%;border-radius:3px;background:var(--accent);transition:width .5s var(--ease)}
 
@@ -266,7 +271,7 @@ h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
       <div class="legend">
         <span><i style="background:var(--b-day)"></i>Daylight</span><span><i style="background:var(--b-gold)"></i>Golden hour</span><span><i style="background:var(--b-civil)"></i>Civil twilight</span><span><i style="background:var(--b-naut)"></i>Nautical</span><span><i style="background:var(--b-astro)"></i>Astronomical</span><span><i style="background:var(--b-night);border:1px solid var(--line)"></i>Night</span>
       </div>
-      <div class="cards" style="margin-top:14px"><div class="card wide" id="cYear" style="--n:1"></div></div>
+      <div class="cards" style="margin-top:14px"><div class="card wide" id="cTurn" style="--n:1"></div><div class="card wide" id="cYear" style="--n:2"></div></div>
     </section>
 
     <section class="view" id="events" aria-label="Events">
@@ -488,16 +493,16 @@ function yearly(loc,ts){
   const y=new Date(ts+tzOffset(ts,loc.tz)*6e4).getUTCFullYear(),north=loc.lat>=0,out=[];
   for(const yr of[y,y+1]){
     const sp=k=>seasonPoint(yr,k);
-    out.push({label:'March equinox',sub:north?'Spring begins':'Autumn begins',ts:sp(0),col:'--blue'},{label:'June solstice',sub:north?'Longest day':'Shortest day',ts:sp(1),col:'--gold',feat:1},{label:'September equinox',sub:north?'Autumn begins':'Spring begins',ts:sp(2),col:'--blue'},{label:'December solstice',sub:north?'Shortest day':'Longest day',ts:sp(3),col:'--violet',feat:1},
+    out.push({label:'March equinox',sub:north?'Spring begins':'Autumn begins',ts:sp(0),col:'--blue'},{label:'June solstice',sub:north?'Longest day':'Shortest day',ts:sp(1),col:'--gold'},{label:'September equinox',sub:north?'Autumn begins':'Spring begins',ts:sp(2),col:'--blue'},{label:'December solstice',sub:north?'Shortest day':'Longest day',ts:sp(3),col:'--violet'},
       {label:'Closest to the Sun',sub:'Perihelion, give or take a day',ts:apsis(yr,0),col:'--sun'},{label:'Farthest from the Sun',sub:'Aphelion, give or take a day',ts:apsis(yr,1),col:'--noon'});
     const tb=yearTable(loc,yr),std=Math.min(...tb.map(d=>d.no));
-    tb.forEach((d,i)=>{if(i&&d.no!==tb[i-1].no)out.push({label:d.no>tb[i-1].no?'Clocks go forward':'Clocks go back',sub:'Daylight saving time '+(d.no>tb[i-1].no?'starts':'ends'),ts:d.start+DAY/2,col:'--noon'})});
     if(tb.every(d=>d.sr!=null)){
       const pick=(k,sign)=>tb.reduce((a,d)=>sign*(d[k]-(d.no-std)/60)<sign*(a[k]-(a.no-std)/60)?d:a);
       const add=(label,d,col)=>out.push({label,sub:'',ts:d.start+DAY/2,col});
       add('Earliest sunrise',pick('sr',1),'--sun');add('Latest sunset',pick('ss',-1),'--sun');add('Latest sunrise',pick('sr',-1),'--violet');add('Earliest sunset',pick('ss',1),'--violet');
     }
   }
+  out.forEach(e=>{if(SP.includes(e.label))e.tp=1});
   const d0=getDay(loc,ts).start,seen=new Set();
   return out.filter(e=>e.ts>=d0).sort((a,b)=>a.ts-b.ts).filter(e=>!seen.has(e.label)&&seen.add(e.label));
 }
@@ -516,16 +521,14 @@ let geo={W:0,H:0,hy:0,sc:1,xy:[]};
 function solarDay(day){if(day.sp===undefined){day.sp='';const yr=new Date(day.wallMid).getUTCFullYear();for(let k=0;k<4;k++)if(getDay(S.loc,seasonPoint(yr,k)).key===day.key)day.sp=SP[k]}return day.sp}
 function heroStatic(day){
   const W=hero.clientWidth,H=hero.clientHeight;if(!W||!H)return;
-  const yr=new Date(day.wallMid).getUTCFullYear(),sol=[1,3].map(k=>({k,d:getDay(S.loc,seasonPoint(yr,k))})),hi=sol[0].d.mx>=sol[1].d.mx?sol[0]:sol[1];
+  const yr=new Date(day.wallMid).getUTCFullYear(),sol=[1,3].map(k=>({k,d:getDay(S.loc,seasonPoint(yr,k))}));
   const hy=Math.round(H*.62),foot=hero.querySelector('.hero-foot').offsetHeight,mx=Math.max(day.mx,sol[0].d.mx,sol[1].d.mx),mn=Math.min(day.mn,sol[0].d.mn,sol[1].d.mn),sc=Math.min(H*.3/Math.max(mx,24),Math.max(40,H-hy-foot-10)/Math.max(-mn,24));
-  const ghosts=sol.filter(o=>o.d.key!==day.key).map(o=>{const q=o.d.pts,t=q.reduce((a,b,i)=>b.alt>q[a].alt?i:a,0),gy=hy-q[t].alt*sc,ly=o===hi?gy-8:gy+(hy-gy)*.5+4;
-    return`<path d="M${q.map((v,i)=>(i/96*W).toFixed(1)+' '+(hy-v.alt*sc).toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-dasharray="1 6" stroke-linecap="round"/>`+(H>=460&&ly<hy-6?`<text x="${clamp(t/96*W,54,W-54).toFixed(1)}" y="${ly.toFixed(1)}" style="fill:rgba(255,255,255,.6)">${SP[o.k]}</text>`:'')}).join('');
   const xy=day.pts.map((p,i)=>[i/96*W,hy-p.alt*sc]);geo={W,H,hy,sc,xy};
   hero.style.setProperty('--hy',hy+'px');
   const step=W<520?6:3;let ticks='';
   for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
   curve.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  curve.innerHTML=`${ghosts}<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 5"/>
+  curve.innerHTML=`<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 5"/>
   <path id="past" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   <line x1="0" x2="${W}" y1="${hy}" y2="${hy}" stroke="rgba(255,255,255,.28)"/>${ticks}
   <line id="drop" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
@@ -573,6 +576,8 @@ function renderHero(day,ts){
   
 }
 
+function glyph(f,size){const r=size/2-1,a=clamp(f,0,1)*PI,x=(r*sin(a)).toFixed(2),y=(-r*cos(a)).toFixed(2);
+  return`<svg width="${size}" height="${size}" viewBox="${-size/2} ${-size/2} ${size} ${size}" aria-hidden="true"><circle r="${r}" fill="#171a3d" stroke="rgba(255,255,255,.28)"/>${f>=.999?`<circle r="${r}" fill="#ffd166"/>`:f<=.001?'':`<path d="M0 0L${-x} ${y}A${r} ${r} 0 ${f>.5?1:0} 1 ${x} ${y}Z" fill="#ffd166"/>`}</svg>`}
 const DIR=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
 function moonSVG(ph,south,size){
   const r=size/2-2,k=ph<.5?ph:1-ph,rx=Math.abs(cos(2*PI*k))*r,flip=(ph>.5)!==south;
@@ -638,9 +643,8 @@ function renderEvents(day,ts){
     $('eDay').innerHTML=h;
   }
   if(changed('evY',day.key)){
-    $('eYear').innerHTML=yearly(loc,ts).map(e=>{const n=Math.round((getDay(loc,e.ts).wallMid-day.wallMid)/DAY);
-      const sub=e.feat?e.sub+' · '+durS(getDay(loc,e.ts).len)+' of daylight':e.sub;
-      return`<div class="row${e.feat?' feat':''}"><i class="dot" style="color:var(${e.col})"></i><div class="l"><span>${e.label}</span>${sub?`<em>${sub}</em>`:''}</div><div class="t">${dMed(e.ts,tz)}<em>${inDays(n)}</em></div></div>`}).join('');
+    $('eYear').innerHTML=yearly(loc,ts).map(e=>{const ed=getDay(loc,e.ts),n=Math.round((ed.wallMid-day.wallMid)/DAY),sub=e.tp?e.sub+' · '+durS(ed.len)+' of daylight':e.sub;
+      return`<div class="row">${e.tp?glyph(ed.len/DAY,18):`<i class="dot" style="color:var(${e.col})"></i>`}<div class="l"><span>${e.label}</span>${sub?`<em>${sub}</em>`:''}</div><div class="t">${dMed(e.ts,tz)}<em>${inDays(n)}</em></div></div>`}).join('');
   }
 }
 const chart=$('chart'),box=$('chartbox');let cg=null;
@@ -665,10 +669,11 @@ function renderYear(day,ts){
     for(let m=0;m<12;m++){const i0=Math.round((Date.UTC(year,m,1)-tb[0].w)/DAY),i1=Math.round((Date.UTC(year,m+1,1)-tb[0].w)/DAY);
       if(m){x.beginPath();x.moveTo(X(i0),Tp);x.lineTo(X(i0),Tp+h);x.stroke()}
       const nm=fmt('UTC','M',{month:'short'}).format(Date.UTC(year,m,15));x.fillText(w<430?nm.slice(0,1):nm,X((i0+Math.min(i1,n-1))/2),13)}
-    for(let k=0;k<4;k++){const i=Math.round((getDay(loc,seasonPoint(year,k)).wallMid-tb[0].w)/DAY);if(i<0||i>=n)continue;const px=X(i);
-      if(k%2){x.strokeStyle='rgba(255,214,120,.7)';x.lineWidth=1;x.setLineDash([3,3]);x.beginPath();x.moveTo(px,Tp);x.lineTo(px,Tp+h);x.stroke();x.setLineDash([]);
-        const al=px>L+w-64?'right':px<L+64?'left':'center';x.textAlign=al;x.fillStyle='rgba(255,228,170,.95)';x.fillText(dMed(tb[i].start+DAY/2,loc.tz)+' solstice',px+(al==='right'?-6:al==='left'?6:0),Tp+h-11)}
-      x.fillStyle=k%2?'#ffd166':'rgba(255,255,255,.7)';x.beginPath();x.moveTo(px,Tp-4);x.lineTo(px+4,Tp);x.lineTo(px,Tp+4);x.lineTo(px-4,Tp);x.fill()}
+    for(let k=0;k<4;k++){const i=Math.round((getDay(loc,seasonPoint(year,k)).wallMid-tb[0].w)/DAY);if(i<0||i>=n)continue;const px=X(i),f=tb[i].len/DAY,r=6;
+      x.strokeStyle='rgba(255,255,255,.3)';x.lineWidth=1;x.setLineDash([2,3]);x.beginPath();x.moveTo(px,Tp);x.lineTo(px,Tp+h);x.stroke();x.setLineDash([]);
+      x.beginPath();x.arc(px,Tp,r,0,7);x.fillStyle='#171a3d';x.fill();
+      if(f>.001){x.beginPath();x.moveTo(px,Tp);x.arc(px,Tp,r,-PI/2-f*PI,-PI/2+f*PI);x.closePath();x.fillStyle='#ffd166';x.fill()}
+      x.beginPath();x.arc(px,Tp,r,0,7);x.strokeStyle='rgba(255,255,255,.45)';x.stroke()}
     const mark=(i,a,dots)=>{if(i<0||i>=n)return;const d=tb[i],px=X(i);x.strokeStyle=`rgba(255,255,255,${a})`;x.lineWidth=dots?1.5:1;x.setLineDash(dots?[]:[2,4]);x.beginPath();x.moveTo(px,Tp);x.lineTo(px,Tp+h);x.stroke();x.setLineDash([]);
       if(dots)for(const v of[d.sr,d.ss])if(v!=null){x.beginPath();x.arc(px,Y(v),4.500,0,7);x.fillStyle='#fff';x.fill();x.strokeStyle='rgba(0,0,0,.35)';x.lineWidth=1;x.stroke()}};
     if(today!==sel)mark(today,.55,false);mark(sel,.95,true);
@@ -677,6 +682,9 @@ function renderYear(day,ts){
     const d=tb[sel],df=day.len-day.prev;
     $('yK').textContent='Daylight through '+year;$('yDate').textContent=dLong(d.start+DAY/2,loc.tz);
     $('yDelta').innerHTML=`<b style="font-size:17px;font-weight:500;color:var(--ink)">${durS(day.len)}</b><br><span class="${df<0?'down':'up'}">${delta(df)}</span> vs day before`;
+    const north=loc.lat>=0,note=['Equal day and night','Longest day','Equal day and night','Shortest day'],tps=[year,year+1].flatMap(y=>[0,1,2,3].map(k=>({k,d:getDay(loc,seasonPoint(y,k))}))).filter(o=>o.d.start>=day.start).slice(0,4);
+    $('cTurn').innerHTML=`<h3>Solstices and equinoxes</h3><div class="turn">${tps.map((o,i)=>{const nd=Math.round((o.d.wallMid-day.wallMid)/DAY);
+      return`<button class="tp${i?'':' on'}" data-go="${o.d.start}" aria-label="Go to the ${SP[o.k]}">${glyph(o.d.len/DAY,34)}<span class="tn">${SP[o.k]}</span><span class="td">${dMed(o.d.start+DAY/2,loc.tz)}</span><span class="sub">${durS(o.d.len)} · ${inDays(nd).toLowerCase()}</span><span class="sub">${note[north?o.k:(o.k+2)%4]}</span></button>`}).join('')}</div>`;
     const mx=tb.reduce((a,b)=>b.len>a.len?b:a),mn=tb.reduce((a,b)=>b.len<a.len?b:a);
     $('cYear').innerHTML=`<div class="stats" style="margin-top:0"><div><span class="k">Sunrise</span><span class="v">${tH(day.t.sunrise,loc.tz)}</span></div><div><span class="k">Sunset</span><span class="v">${tH(day.t.sunset,loc.tz)}</span></div><div><span class="k">Longest day</span><span class="v">${durS(mx.len)}</span><span class="sub">${dMed(mx.start+DAY/2,loc.tz)}</span></div><div><span class="k">Shortest day</span><span class="v">${durS(mn.len)}</span><span class="sub">${dMed(mn.start+DAY/2,loc.tz)}</span></div></div>`;
   }
@@ -725,7 +733,7 @@ const endDrag=e=>{if(!drag)return;if(!drag.on&&e.type==='pointerup'&&Math.abs(e.
 hero.addEventListener('pointerup',endDrag);hero.addEventListener('pointercancel',endDrag);
 function scrubTo(e){const r=hero.getBoundingClientRect(),day=getDay(S.loc,T());$('hint').classList.add('off');setView(day.start+clamp((e.clientX-r.left)/r.width,0,.9999)*DAY)}
 hero.addEventListener('keydown',e=>{const k={ArrowLeft:-6e5,ArrowRight:6e5,ArrowDown:-HR,ArrowUp:HR,PageDown:-DAY,PageUp:DAY}[e.key];if(k){e.preventDefault();$('hint').classList.add('off');setView(T()+k)}else if(e.key==='Escape'||e.key==='Home'){travel(null)}});
-document.addEventListener('click',e=>{if(e.target.closest('#backBtn,[data-now]'))travel(null,1100)});
+document.addEventListener('click',e=>{if(e.target.closest('#backBtn,[data-now]'))travel(null,1100);const g=e.target.closest('[data-go]');if(g)travel(+g.dataset.go+(T()-getDay(S.loc,T()).start),1300)});
 
 let cdrag=false;
 const pick=e=>{if(!cg)return;const r=box.getBoundingClientRect(),i=clamp(Math.round((e.clientX-r.left-cg.L)/cg.w*(cg.n-1)),0,cg.n-1),day=getDay(S.loc,T());setView(cg.tb[i].start+(T()-day.start))};
