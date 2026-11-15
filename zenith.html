@@ -30,28 +30,31 @@ small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opac
 
 /* ───────── Sky ───────── */
 .hero{position:relative;height:72%;min-height:430px;overflow:hidden;container-type:size;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize;background:#000}
-.sky{position:absolute;inset:0 0 auto 0;height:var(--hy,62%);overflow:hidden;--sg:var(--s-top,#0b1030) 0%,var(--s-up,#101c48) 36%,var(--s-mid,#16214f) 64%,var(--s-low,#23306a) 86%,var(--s-hor,#2a2f6e) 100%;background:linear-gradient(to bottom,var(--sg));background:linear-gradient(to bottom in oklab,var(--sg))}
+.sky{position:absolute;inset:0 0 auto 0;height:var(--hy,62%);overflow:hidden;--sg:var(--s-top,#0b1030) 0%,var(--s-up,#101c48) 40%,var(--s-mid,#16214f) 77%,var(--s-low,#23306a) 93%,var(--s-hor,#2a2f6e) 100%;background:linear-gradient(to bottom,var(--sg));background:linear-gradient(to bottom in oklab,var(--sg))}
 .sky canvas{position:absolute;inset:0;width:100%;height:100%;opacity:var(--stars,0)}
 .sky .tw{animation:tw 3.6s ease-in-out infinite alternate}
 @keyframes tw{from{filter:opacity(.25)}to{filter:opacity(1)}}
-.glow{position:absolute;left:0;top:0;width:140cqmin;height:140cqmin;border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);background:radial-gradient(circle,var(--glow,transparent) 0,transparent 19%),radial-gradient(circle,var(--glow2,transparent) 0,transparent 60%);opacity:var(--glow-a,0);will-change:translate}
-.sky::after{content:"";position:absolute;inset:auto 0 0 0;height:70%;background:radial-gradient(ellipse 30% 55% at var(--sx,50%) 100%,var(--hglow,transparent),transparent 72%),radial-gradient(ellipse 115% 34% at var(--sx,50%) 100%,var(--hglow2,transparent),transparent 74%),radial-gradient(ellipse 85% 62% at calc(100% - var(--sx,50%)) 100%,var(--venus,transparent),transparent 72%)}
+.glow{position:absolute;left:0;top:0;width:140cqmin;height:140cqmin;border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);background:radial-gradient(circle,var(--glow0,transparent) 0,transparent 9%),radial-gradient(circle,var(--glow,transparent) 0,transparent 25%),radial-gradient(circle,var(--glow2,transparent) 0,transparent 60%);opacity:var(--glow-a,0);scale:1 var(--gsq,1);mix-blend-mode:screen;will-change:translate}
+.sky::after{content:"";position:absolute;inset:auto 0 0 0;height:70%;background:radial-gradient(ellipse 24% 40% at var(--sx,50%) 100%,var(--hglow,transparent),transparent 72%),radial-gradient(ellipse 130% 19% at var(--sx,50%) 100%,var(--hglow2,transparent),transparent 74%),radial-gradient(ellipse 85% 62% at calc(100% - var(--sx,50%)) 100%,var(--venus,transparent),transparent 72%)}
 .sunlayer{position:absolute;inset:0 0 auto 0;height:var(--hy,62%);overflow:hidden;pointer-events:none}
 .disc{position:absolute;left:0;top:0;width:var(--ds,28px);height:var(--ds,28px);border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);scale:1 var(--sq,1);opacity:var(--disc-a,0);
-  background:radial-gradient(circle,var(--d0,#fff) 0,var(--d0,#fff) 38%,var(--d1,#fff) 78%,var(--d2,#fff) 100%);
-  box-shadow:0 0 calc(var(--ds,28px)*.22) var(--d1,#fff),0 0 calc(var(--ds,28px)*.9) var(--d2,#fff),0 0 calc(var(--ds,28px)*2.6) var(--d3,transparent)}
-.ground{position:absolute;inset:var(--hy,62%) 0 0 0;background:linear-gradient(to bottom,var(--g-top,#05060c),#050507 48%,#020203)}
-.sky::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 140% 105% at 50% 100%,transparent 52%,rgba(0,2,14,.42) 100%)}
-.haze{position:absolute;left:-4%;right:-4%;top:calc(var(--hy,62%) - 4.5cqh);height:9cqh;background:linear-gradient(to bottom,transparent,var(--haze,transparent) 47%,var(--haze2,transparent) 54%,transparent);filter:blur(7px);pointer-events:none}
-.grain{position:absolute;inset:0;opacity:.075;mix-blend-mode:overlay;pointer-events:none;background-size:160px}
-.mini-head{position:absolute;left:0;right:0;top:calc(max(11cqh,72px) + var(--sat,0px));display:grid;justify-items:center;gap:.5cqh;text-align:center;pointer-events:none;text-shadow:0 1px 18px rgba(0,0,0,.18)}
+  background:radial-gradient(circle,#fff 0,var(--d0,#fff) 46%,var(--d1,#fff) 100%);filter:blur(.6px);
+  box-shadow:0 0 calc(var(--ds,28px)*.4) calc(var(--ds,28px)*.1) var(--d1,#fff),0 0 calc(var(--ds,28px)*1.4) calc(var(--ds,28px)*.22) var(--d2,#fff),0 0 calc(var(--ds,28px)*3.8) calc(var(--ds,28px)*.5) var(--d3,transparent)}
+.ground{position:absolute;inset:var(--hy,62%) 0 0 0;background:radial-gradient(ellipse 85% 150% at 50% 0,transparent 45%,rgba(0,0,0,.5)),linear-gradient(to bottom,var(--g-top,#05060c),#0b0908 46%,#040303)}
+.sky::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,.045),transparent 30%),radial-gradient(ellipse 140% 105% at 50% 100%,transparent 52%,rgba(0,2,14,.42) 100%)}
+.haze{position:absolute;left:-4%;right:-4%;top:calc(var(--hy,62%) - 3.2cqh);height:6cqh;background:linear-gradient(to bottom,transparent,var(--haze,transparent) 50%,var(--haze2,transparent) 60%,transparent);filter:blur(5px);pointer-events:none}
+.grain{position:absolute;inset:0;opacity:.04;mix-blend-mode:overlay;pointer-events:none;background-size:160px}
+.mini-head{position:absolute;left:0;right:0;top:calc(max(12cqh,74px) + var(--sat,0px));display:grid;justify-items:center;gap:.5cqh;text-align:center;pointer-events:none;text-shadow:0 1px 18px rgba(0,0,0,.18)}
 .mini-head div{font-size:clamp(26px,min(7.2cqw,6cqh),46px);line-height:1.12;letter-spacing:-.022em}
 #mEv{font-weight:600}
 #mDur{font-weight:400;color:rgba(255,255,255,.86)}
 .mini-head #mIn{font-size:clamp(10px,1.7cqh,13px);font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1em}
-.mini-head #mDate{font-size:clamp(12px,1.9cqh,15px);font-weight:500;letter-spacing:0;color:rgba(255,255,255,.72);margin-bottom:.7cqh}
+.mini-foot{position:absolute;inset:auto 0 0 0;padding-bottom:calc(var(--foot) + 8px);display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:clamp(14px,2.1cqh,17px);font-weight:500;color:rgba(255,255,255,.8);pointer-events:none}
+.mini-foot button{pointer-events:auto;font-weight:500}
+.hero[data-mode=min] #locBtn,.hero[data-mode=min] #hcBtn{display:none}
+.hero[data-mode=min] .hero-top .pill{background:rgba(255,255,255,.1)}
 .hero[data-mode=min] .headline,.hero[data-mode=min] .hero-foot,.hero[data-mode=min] .hint,.hero[data-mode=min] .tk{display:none}
-.hero[data-mode=full] .mini-head,.hero[data-mode=full] .mn{display:none}
+.hero[data-mode=full] .mini-head,.hero[data-mode=full] .mini-foot{display:none}
 .ground::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;background:radial-gradient(ellipse 16% 100% at var(--sx,50%) 0,var(--refl,transparent),transparent 78%),radial-gradient(ellipse 75% 26% at var(--sx,50%) 0,var(--refl2,transparent),transparent 72%)}
 .curve{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .curve text{font:500 10px var(--ui);fill:rgba(255,255,255,.5);text-anchor:middle;letter-spacing:.04em}
@@ -260,7 +263,8 @@ h2{margin:0;font:600 26px/1.1 var(--display);letter-spacing:-.025em}
         <span id="ringTxt"></span>
       </div>
     </div>
-    <div class="mini-head"><div id="mDate"></div><div id="mEv"></div><div id="mIn"></div><div id="mDur"></div></div>
+    <div class="mini-head"><div id="mEv"></div><div id="mIn"></div><div id="mDur"></div></div>
+    <div class="mini-foot gut"><span id="mDate"></span><button id="mLoc" aria-haspopup="dialog"></button></div>
     <div class="hint" id="hint">Drag across the sky to move through the day</div>
     <button class="pill back" id="backBtn" hidden>Back to now</button>
     <div class="hero-foot gut">
@@ -380,12 +384,12 @@ const SKY=[
  [-18,'#03040c','#040611','#060918','#090d22','#0d122c','#8d9bff'],
  [-12,'#050818','#091030','#0f1a44','#18245a','#283268','#9a8fff'],
  [-8,'#0a1230','#142252','#23336f','#4c4280','#8c5273','#b497ff'],
- [-5,'#101c48','#1f3270','#414c8e','#a06088','#ea7c50','#d6a2f0'],
- [-2.5,'#132250','#284078','#6c6498','#de8470','#f7822e','#ffb38a'],
- [-.5,'#172a52','#34507e','#8c93ad','#f0a860','#f97f24','#ffc078'],
- [1.5,'#1b345f','#3d6090','#93a5b4','#f2c070','#fb962e','#ffd27a'],
- [4,'#21487f','#4d7fb4','#a9c2d2','#f6dca0','#fdba5e','#ffe0a0'],
- [8,'#2a68c0','#62a2e2','#b4d6f2','#e6eee4','#f6e2b8','#cfe2ff'],
+ [-5,'#0c1430','#18264c','#3a3f66','#8a4e60','#c8592e','#d6a2f0'],
+ [-2.5,'#101a36','#1f2e52','#4c5068','#b0703c','#e2601a','#ffb38a'],
+ [-.5,'#16233e','#2b3c58','#5f6a70','#d99526','#ea6a10','#ffc078'],
+ [1.5,'#1b2a46','#34475f','#6f7a78','#e2a52e','#f0780f','#ffd27a'],
+ [4,'#213a62','#42618a','#8a9aa0','#ecc468','#f6a030','#ffe0a0'],
+ [8,'#27589e','#4f88c4','#9fc0d8','#dfe2c8','#f2d49a','#cfe2ff'],
  [15,'#2a6fd0','#5a9ce6','#96c6f2','#c2def6','#dcecf6','#a8d4ff'],
  [40,'#1b5fc8','#3f8ae4','#6eb0f0','#9fcff6','#bee0f8','#9ccbff'],
  [90,'#1857c0','#3b86e2','#6aadee','#9ccdf5','#bbdef7','#9ccbff']]
@@ -547,12 +551,12 @@ function heroStatic(day){
   hero.style.setProperty('--hy',hy+'px');
   const step=W<520?6:3;let ticks='';
   for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line class="tk" x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text class="tk" x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
-  const mk=k=>{const v=day.t[k];if(v==null)return'';const x=(v-day.start)/DAY*W;return`<circle class="mn" cx="${x.toFixed(1)}" cy="${hy}" r="2.5" fill="rgba(255,255,255,.9)"/><text class="mn" x="${clamp(x,34,W-34).toFixed(1)}" y="${hy+25}" style="font-size:12px;letter-spacing:0;fill:rgba(255,255,255,.74)">${esc(tf(S.loc.tz).format(v))}</text>`};
+  const fd=min?`<defs>${[['fa',.38],['fb',.95]].map(([id,o])=>`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${hy}" x2="0" y2="${(hy+(H-hy)*.78).toFixed(1)}"><stop offset="0" stop-color="#fff" stop-opacity="${o}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`).join('')}</defs>`:'';
   curve.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  curve.innerHTML=`<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.36)" stroke-width="1.3" stroke-linecap="round"/>
-  <path id="past" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  curve.innerHTML=`${fd}<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="${min?'url(#fa)':'rgba(255,255,255,.36)'}" stroke-width="1.3" stroke-linecap="round"/>
+  <path id="past" fill="none" stroke="${min?'url(#fb)':'rgba(255,255,255,.92)'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   <line class="tk" x1="0" x2="${W}" y1="${hy}" y2="${hy}" stroke="rgba(255,255,255,.28)"/>${ticks}
-  ${mk('sunrise')}${mk('sunset')}<line id="drop" class="tk" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
+  <line id="drop" class="tk" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
   <circle id="sun" r="6" fill="#0a0c14" stroke="rgba(255,255,255,.75)" stroke-width="1.5"/>`;
   if(changed('stars',W+'x'+hy))drawStars(W,hy);
 }
@@ -573,13 +577,13 @@ function renderHero(day,ts){
   sun.setAttribute('cx',sx);sun.setAttribute('cy',sy);sun.setAttribute('opacity',up?0:1);
   drop.setAttribute('x1',sx);drop.setAttribute('x2',sx);drop.setAttribute('y1',up?Math.min(hy,sy+ds/2+4):Math.max(hy,sy-9));drop.setAttribute('y2',hy);
   const[top,upr,mid,lo,hor,acc]=sky(a),[d0,d1,d2]=interp(SUN,a),edge=clamp(1-Math.abs(a+.5)/9,0,1),refl=clamp(1-Math.abs(a-1)/9,0,1);
-  set('--s-top',rgb(top));set('--s-up',rgb(upr));set('--s-mid',rgb(mid));set('--s-low',rgb(lo));set('--venus',rgb([228,140,178],(clamp(1-Math.abs(a+2)/5,0,1)*.38).toFixed(3)));set('--s-hor',rgb(hor));set('--g-top',rgb(hor.map(v=>Math.round(v*.2))));
+  set('--s-top',rgb(top));set('--s-up',rgb(upr));set('--s-mid',rgb(mid));set('--s-low',rgb(lo));set('--venus',rgb([228,140,178],(clamp(1-Math.abs(a+2)/5,0,1)*.14).toFixed(3)));set('--s-hor',rgb(hor));set('--g-top',rgb(hor.map(v=>Math.round(v*.2))));
   set('--sx',sx+'px');set('--sy',sy+'px');set('--ds',ds.toFixed(1)+'px');set('--sq',(1-.12*clamp(1-a/3,0,1)).toFixed(3));
   set('--d0',rgb(d0));set('--d1',rgb(d1));set('--d2',rgb(d2));set('--d3',rgb(d2,.5));set('--disc-a',clamp((a+2.6)/1.2,0,1));
-  set('--glow',rgb(d1,.6));set('--glow2',rgb(d2,.42+.2*low));set('--glow-a',clamp((a+6)/6,0,1));
-  set('--hglow',rgb([255,178,92],(edge*.85).toFixed(3)));set('--hglow2',rgb([255,92,48],(edge*.6).toFixed(3)));
-  set('--refl',rgb(d1,(refl*.5).toFixed(3)));set('--refl2',rgb(d2,(refl*.26).toFixed(3)));
-  set('--stars',clamp((-a-5)/9,0,1));set('--haze',rgb(hor,.5));set('--haze2',rgb(hor.map(v=>Math.round(v*.28)),.9));
+  set('--glow0',rgb(d0,.85));set('--glow',rgb(d1,(.6+.25*low).toFixed(2)));set('--glow2',rgb(d2,.42+.2*low));set('--glow-a',clamp((a+6)/6,0,1));
+  set('--hglow',rgb([255,198,86],(edge*.9).toFixed(3)));set('--hglow2',rgb([244,98,20],(edge*.72).toFixed(3)));set('--gsq',(1-.42*low).toFixed(2));
+  set('--refl',rgb(d1,(refl*.2).toFixed(3)));set('--refl2',rgb(d2,(refl*.14).toFixed(3)));
+  set('--stars',clamp((-a-5)/9,0,1));set('--haze',rgb(hor.map((v,i)=>Math.round(v+([255,92,22][i]-v)*edge)),(.5+.4*edge).toFixed(2)));set('--haze2',rgb(hor.map(v=>Math.round(v*.28)),.9));
   const root=document.documentElement.style;
   root.setProperty('--accent',rgb(acc));root.setProperty('--pane',rgb(top.map((v,i)=>Math.round(v*.2+[5,7,13][i]))));
   // headline
@@ -587,14 +591,14 @@ function renderHero(day,ts){
   const big=e=>e.k==='sunrise'||e.k==='sunset',nowEv=all.find(e=>big(e)&&ts>=e.ts-6e4&&ts<=e.ts+15e4)||all.find(e=>Math.abs(ts-e.ts)<=45e3),nx=all.find(e=>e.ts>ts&&e!==nowEv);
   const[p1,p2]=nowEv?[nowEv.label,'']:phaseName(pos.alt,rising);
   if(changed('ph',p1+p2))$('hPhase').innerHTML=esc(p1)+(p2?' <i>'+esc(p2)+'</i>':'');
-  if(changed('hd',Math.floor(ts/6e4)+loc.id)){$('hDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)+(solarDay(day)?' · '+solarDay(day):'');$('mDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)}
+  if(changed('hd',Math.floor(ts/6e4)+loc.id+(S.view==null))){$('hDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)+(solarDay(day)?' · '+solarDay(day):'');$('mDate').innerHTML=S.view==null?fmt(loc.tz,'L',{weekday:'long',day:'numeric',month:'long'}).format(ts):dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)}
   const idle=day.noonAlt>0?'The sun stays up all day':'The sun stays down all day',soon=nx?`${esc(nx.label)} in <b>${dur(nx.ts-ts)}</b>`:'';
   const nt=nowEv?'Happening now'+(soon?' · '+soon:''):soon||idle;
   if(changed('nx',nt)){$('hNext').innerHTML=nt;$('mEv').textContent=nowEv?nowEv.label:nx?nx.label:(day.noonAlt>0?'Midnight sun':'Polar night');$('mIn').textContent=nowEv?'now':nx?'in':'';$('mDur').textContent=nowEv||!nx?'':durL(nx.ts-ts)}
   const t=day.t,left=t.sunrise==null?(day.len?1:0):clamp((t.sunset-ts)/(t.sunset-t.sunrise),0,1),pct=Math.round(left*100);
   if(changed('rg',pct)){$('ringFg').style.strokeDashoffset=100-pct;$('ringTxt').textContent=pct+'% left'}
   if(changed('ft',day.key)){$('fRise').innerHTML=tH(t.sunrise,loc.tz);$('fSet').innerHTML=tH(t.sunset,loc.tz);$('fLen').textContent=durS(day.len)}
-  if(changed('ln',loc.id))$('locName').textContent=loc.name;
+  if(changed('ln',loc.id))$('locName').textContent=$('mLoc').textContent=loc.name;
   hero.setAttribute('aria-valuenow',(f*24).toFixed(2));hero.setAttribute('aria-valuetext',tf(loc.tz).format(ts)+', '+p1+' '+p2);
   
 }
@@ -780,7 +784,7 @@ function renderPlaces(){
 }
 function choose(p){S.loc=p;persist();closeSheet();travel(S.view,1)}
 const openSheet=()=>{q.value='';scrim.hidden=false;renderPlaces()},closeSheet=()=>{scrim.hidden=true;$('locBtn').focus()};
-$('locBtn').addEventListener('click',openSheet);$('doneBtn').addEventListener('click',closeSheet);
+$('locBtn').addEventListener('click',openSheet);$('mLoc').addEventListener('click',openSheet);$('doneBtn').addEventListener('click',closeSheet);
 scrim.addEventListener('click',e=>{if(e.target===scrim)closeSheet()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!scrim.hidden)closeSheet()});
 q.addEventListener('input',renderPlaces);

@@ -20,7 +20,7 @@ HEAD
 
 <script>
 (()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b9',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
+const BUILD='b10',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
 if(pwa)document.documentElement.classList.add('pwa');
 const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
 const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
