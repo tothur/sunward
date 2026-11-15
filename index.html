@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="description" content="Sunward: a living sky that follows the sun, with today's solar events, solstices and the year of daylight.">
-<meta name="theme-color" content="#0b1030">
+<meta name="theme-color" content="#050506">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sunward">
-<style>:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}html{background:#070b16}html,body{height:100dvh}body>.app{position:fixed;inset:0;height:auto}.pwa{--sat:calc(env(safe-area-inset-top,0px) + 18px)}.pwa body>.app{bottom:auto;height:max(100%,100vh)}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<style>:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}html{background:#050506}html,body{height:100dvh}body>.app{position:fixed;inset:0;height:auto}.pwa{--sat:calc(env(safe-area-inset-top,0px) + 18px)}.pwa body>.app{bottom:auto;height:max(100%,100vh)}body{margin:0}[hidden]{display:none!important}</style></head><body>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -32,7 +32,7 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{background:var(--pane);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+body{background:#050506;color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.4;overflow:hidden;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 button:focus-visible,input:focus-visible,.hero:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opacity:.75}
@@ -46,11 +46,12 @@ small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opac
 .sky canvas{position:absolute;inset:0;width:100%;height:100%;opacity:var(--stars,0)}
 .sky .tw{animation:tw 3.6s ease-in-out infinite alternate}
 @keyframes tw{from{filter:opacity(.25)}to{filter:opacity(1)}}
-.glow{position:absolute;left:0;top:0;width:140cqmin;height:140cqmin;border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);background:radial-gradient(circle,var(--glow0,transparent) 0,transparent 6%),radial-gradient(circle,var(--glow,transparent) 0,transparent 16%),radial-gradient(circle,var(--glow2,transparent) 0,transparent var(--gr,44%));opacity:var(--glow-a,0);scale:1 var(--gsq,1);will-change:translate}
+.glow{position:absolute;left:0;top:0;width:140cqmin;height:140cqmin;border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);background:radial-gradient(circle,var(--glow0,transparent) 0,transparent 6%),radial-gradient(circle,var(--glow,transparent) 0,transparent 16%),radial-gradient(circle,var(--glow2,transparent) 0,transparent var(--gr,44%));opacity:var(--glow-a,0);scale:1 var(--gsq,1)}
+.hero[data-glow="0"] .glow,.hero[data-disc="0"] .sunlayer{display:none}
 .sky::after{content:"";position:absolute;inset:auto 0 0 0;height:70%;background:radial-gradient(ellipse 24% 40% at var(--sx,50%) 100%,var(--hglow,transparent),transparent 72%),radial-gradient(ellipse 130% 19% at var(--sx,50%) 100%,var(--hglow2,transparent),transparent 74%),radial-gradient(ellipse 85% 62% at calc(100% - var(--sx,50%)) 100%,var(--venus,transparent),transparent 72%)}
 .sunlayer{position:absolute;inset:0 0 auto 0;height:var(--hy,62%);overflow:hidden;pointer-events:none}
 .disc{position:absolute;left:0;top:0;width:var(--ds,28px);height:var(--ds,28px);border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);scale:1 var(--sq,1);opacity:var(--disc-a,0);
-  background:radial-gradient(circle,#fff 0,var(--d0,#fff) 46%,var(--d1,#fff) 100%);filter:blur(.6px);
+  background:radial-gradient(circle,#fff 0,var(--d0,#fff) 46%,var(--d1,#fff) 100%);
   box-shadow:0 0 calc(var(--ds,28px)*.4) calc(var(--ds,28px)*.1) var(--d1,#fff),0 0 calc(var(--ds,28px)*1.4) calc(var(--ds,28px)*.22) var(--d2,#fff),0 0 calc(var(--ds,28px)*2.4) calc(var(--ds,28px)*.3) var(--d3,transparent)}
 .ground{position:absolute;inset:var(--hy,62%) 0 0 0;background:radial-gradient(ellipse 85% 150% at 50% 0,transparent 45%,rgba(0,0,0,.5)),linear-gradient(to bottom,var(--g-top,#05060c),#0b0908 46%,#040303)}
 .sky::before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,.045),transparent 30%),radial-gradient(ellipse 140% 105% at 50% 100%,transparent 52%,rgba(0,2,14,.42) 100%)}
@@ -630,6 +631,7 @@ function renderHero(day,ts){
   const sat=(c,t)=>c.map((v,i)=>Math.round(v+(t[i]-v)*low));set('--glow0',rgb(sat(d0,[255,206,84]),.95));set('--glow',rgb(sat(d1,[255,160,16]),(.55+.3*low).toFixed(2)));set('--gr',Math.round(40+20*(1-low))+'%');set('--glow2',rgb(sat(d2,[250,104,10]),(.3+.16*low).toFixed(2)));set('--glow-a',clamp((a+6)/6,0,1));
   set('--hglow',rgb([255,198,86],(edge*.9).toFixed(3)));set('--hglow2',rgb([244,98,20],(edge*.72).toFixed(3)));set('--gsq',(1-.42*low).toFixed(2));
   set('--refl',rgb(d1,(refl*.2).toFixed(3)));set('--refl2',rgb(d2,(refl*.14).toFixed(3)));
+  if(changed('sunOn',(a>-2.7)+'|'+(a>-6.2))){hero.dataset.disc=a>-2.7?1:0;hero.dataset.glow=a>-6.2?1:0}
   set('--stars',clamp((-a-5)/9,0,1));set('--haze',rgb(hor.map((v,i)=>Math.round(v+([255,92,22][i]-v)*edge)),(.5+.4*edge).toFixed(2)));set('--haze2',rgb(hor.map(v=>Math.round(v*.28)),.9));
   tint([top,upr,mid,lo,hor,acc]);
   // headline
@@ -871,7 +873,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=n
 
 <script>
 (()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b10',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
+const BUILD='b11',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
 if(pwa)document.documentElement.classList.add('pwa');
 const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
 const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
