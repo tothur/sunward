@@ -286,6 +286,24 @@ h2{font:700 28px/1.1 var(--display);letter-spacing:-.022em}
 kbd{display:inline-block;min-width:26px;padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.14);box-shadow:inset 0 -1px 0 rgba(0,0,0,.3);font:500 12px var(--ui);text-align:center}
 #keysBtn{align-self:center;margin-top:12px;display:none}
 @media (hover:hover) and (pointer:fine){#keysBtn{display:block}}
+.orow{width:100%;text-align:left}
+.orow:hover .l span{color:#fff}
+.opts .row{min-height:52px;padding-block:9px}
+.opts .row+.row::before{left:2px}
+.opts .t{color:rgba(255,255,255,.62)}
+.seg{display:flex;padding:2px;border-radius:10px;background:rgba(255,255,255,.1)}
+.seg button{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--ink-2);transition:background .2s,color .2s}
+.seg button[aria-pressed=true]{background:rgba(255,255,255,.22);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+@media not ((hover:hover) and (pointer:fine)){#oKeys{display:none}}
+#keysBtn{display:none!important}
+.tabs{grid-template-columns:repeat(var(--n),1fr) 44px}
+.tabs::before{width:calc((100% - 54px)/var(--n))}
+.tabs .gear{min-width:0;padding:0;display:grid;place-items:center;color:var(--ink-2)}
+.tabs .gear:hover{color:#fff}
+.sbody{overflow-y:auto;min-height:0}
+.keys{overflow:visible}
+.kcap{margin:22px 4px 4px}
+@media not (any-pointer:fine){.kcap,.keys{display:none}}
 </style>
 
 <div class="app" id="app" data-tab="today">
@@ -298,9 +316,6 @@ kbd{display:inline-block;min-width:26px;padding:3px 8px;border-radius:7px;backgr
     <div class="sunlayer"><div class="disc"></div></div>
     <div class="hero-top gut">
       <button class="pill" id="locBtn" aria-haspopup="dialog"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.6 1.4 1.7 6.5c-.5.2-.5.9 0 1.1l4.9 1.8 1.8 4.9c.2.5.9.5 1.1 0z"/></svg><span id="locName">—</span></button>
-      <button class="pill" id="hcBtn" aria-label="Switch between 12-hour and 24-hour time"></button>
-      <button class="pill" id="modeBtn" aria-label="Switch between the minimal and detailed sky"></button>
-      <button class="pill" id="instBtn" hidden>Install</button>
     </div>
     <div class="headline gut">
       <div>
@@ -360,6 +375,7 @@ kbd{display:inline-block;min-width:26px;padding:3px 8px;border-radius:7px;backgr
     <button role="tab" data-tab="year" title="Year"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2.5 7.5c2.5-3 5-3 7.5 0s5 3 7.5 0M2.5 13.5c2.5-3 5-3 7.5 0s5 3 7.5 0"/></svg><span>Year</span></button>
     <button role="tab" data-tab="events" title="Events"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 5.5h10M7 10h10M7 14.5h10"/><circle cx="3.5" cy="5.5" r=".6"/><circle cx="3.5" cy="10" r=".6"/><circle cx="3.5" cy="14.5" r=".6"/></svg><span>Events</span></button>
     <button role="tab" class="wide" data-tab="all" title="Everything at once"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg><span>All</span></button>
+    <button class="gear" id="setBtn" title="Settings" aria-label="Settings" aria-haspopup="dialog"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h7.200M14.800 6H17M3 10h2.200M8.800 10H17M3 14h8.200M15.800 14H17"/><circle cx="12.500" cy="6" r="1.900"/><circle cx="6.500" cy="10" r="1.900"/><circle cx="13.500" cy="14" r="1.900"/></svg></button>
   </nav>
 </div>
 
@@ -372,8 +388,16 @@ kbd{display:inline-block;min-width:26px;padding:3px 8px;border-radius:7px;backgr
   </div>
 </div>
 <div class="scrim" id="keys" hidden>
-  <div class="sheet gut" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
-    <header><h2>Shortcuts</h2><button class="btn" id="keysDone">Done</button></header>
+  <div class="sheet gut" role="dialog" aria-modal="true" aria-label="Settings">
+    <header><h2>Settings</h2><button class="btn" id="keysDone">Done</button></header>
+    <div class="sbody">
+    <div class="card opts" style="padding-block:6px"><div class="rows">
+      <button class="row orow" id="oLoc" aria-haspopup="dialog"><div class="l"><span>Place</span></div><div class="t" id="oLocV"></div></button>
+      <div class="row"><div class="l"><span>Time</span></div><div class="seg" id="oClock" role="group" aria-label="Time format"><button data-v="12">12-hour</button><button data-v="24">24-hour</button></div></div>
+      <div class="row"><div class="l"><span>Sky</span></div><div class="seg" id="oMode" role="group" aria-label="Sky style"><button data-v="min">Minimal</button><button data-v="full">Detailed</button></div></div>
+      <button class="row orow" id="instBtn" hidden><div class="l"><span>Install Sunward</span></div><div class="t">›</div></button>
+    </div></div>
+    <div class="k kcap">Keyboard shortcuts</div>
     <div class="keys">
       <div><span>Sky, Today, Year, Events</span><span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span></div>
       <div><span>Everything at once (wide screens)</span><kbd>5</kbd></div>
@@ -384,7 +408,8 @@ kbd{display:inline-block;min-width:26px;padding:3px 8px;border-radius:7px;backgr
       <div><span>Move 10 minutes</span><span><kbd>←</kbd> <kbd>→</kbd></span></div>
       <div><span>Move 1 hour</span><span><kbd>Shift</kbd> <kbd>←</kbd> <kbd>→</kbd></span></div>
       <div><span>Previous or next day</span><span><kbd>[</kbd> <kbd>]</kbd></span></div>
-      <div><span>Show this list</span><kbd>?</kbd></div>
+      <div><span>Open Settings</span><kbd>?</kbd></div>
+    </div>
     </div>
   </div>
 </div>
@@ -790,6 +815,7 @@ function renderYear(day,ts){
 }
 function render(){
   const ts=T(),day=getDay(S.loc,ts);
+  if(changed('oloc',S.loc.id+S.loc.name))$('oLocV').textContent=S.loc.name+'  ›';
   if(shown(hero))renderHero(day,ts);else tint(sky(sunPos(ts,S.loc.lat,S.loc.lng).alt));
   const live=S.view==null||!!S.anim||S.scrub;if(changed('live',live)){$('backBtn').hidden=live;document.querySelectorAll('[data-now]').forEach(b=>b.hidden=live)}
   if(shown($('overview')))renderOverview(day,ts);
@@ -822,11 +848,13 @@ function setTab(tab,keep){
   persist();if(!keep){$('app').scrollTop=0;$('pane').scrollTop=0}render();
 }
 wideMQ.addEventListener('change',()=>setTab(S.tab,true));
-function setClock(v){H24=v;for(const k in memo)delete memo[k];$('hcBtn').textContent=H24?'24h':'12h';persist();render()}
-$('hcBtn').addEventListener('click',()=>setClock(!H24));
-function setMode(m,quiet){S.min=m;hero.dataset.mode=m?'min':'full';$('modeBtn').textContent=m?'Details':'Minimal';if(!quiet){persist();render()}}
-$('modeBtn').addEventListener('click',()=>setMode(!S.min));
-$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.tab)});
+function setClock(v){H24=v;for(const k in memo)delete memo[k];syncOpts();persist();render()}
+function syncOpts(){for(const b of $('oClock').children)b.setAttribute('aria-pressed',(b.dataset.v==='24')===H24);for(const b of $('oMode').children)b.setAttribute('aria-pressed',(b.dataset.v==='min')===S.min)}
+$('oClock').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setClock(b.dataset.v==='24')});
+$('oMode').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setMode(b.dataset.v==='min')});
+$('oLoc').addEventListener('click',()=>{keys.hidden=true;openSheet()});
+function setMode(m,quiet){S.min=m;hero.dataset.mode=m?'min':'full';syncOpts();if(!quiet){persist();render()}}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.tab)setTab(b.dataset.tab);else if(b)keys.hidden=false});
 
 let drag=null;
 hero.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag={x:e.clientX,y:e.clientY,on:e.pointerType==='mouse',id:e.pointerId};if(drag.on){S.scrub=true;hero.setPointerCapture(e.pointerId);scrubTo(e)}});
@@ -855,7 +883,7 @@ function renderPlaces(){
   $('plist').innerHTML=hits.length?hits.map((p,i)=>placeRow(p,i,false)).join(''):`<p class="sub" style="padding:14px 4px">No city matches “${esc(q.value)}”. Try a larger city nearby.</p>`;
 }
 function choose(p){S.loc=p;persist();closeSheet();travel(S.view,1)}
-const openSheet=()=>{q.value='';scrim.hidden=false;renderPlaces()},closeSheet=()=>{scrim.hidden=true;$('locBtn').focus()};
+const openSheet=()=>{q.value='';scrim.hidden=false;renderPlaces()},closeSheet=()=>{scrim.hidden=true};
 $('locBtn').addEventListener('click',openSheet);$('mLoc').addEventListener('click',openSheet);$('doneBtn').addEventListener('click',closeSheet);
 scrim.addEventListener('click',e=>{if(e.target===scrim)closeSheet()});
 const keys=$('keys');
@@ -900,7 +928,7 @@ $('instBtn').addEventListener('click',async()=>{if(!instEv)return;instEv.prompt(
 new ResizeObserver(schedule).observe(hero);new ResizeObserver(schedule).observe(box);
 setInterval(()=>{if(S.view==null&&!S.anim&&!document.hidden)render()},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
-$('hcBtn').textContent=H24?'24h':'12h';setMode(S.min,true);
+setMode(S.min,true);
 try{const c=document.createElement('canvas');c.width=c.height=160;const x=c.getContext('2d'),im=x.createImageData(160,160);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);$('grain').style.backgroundImage='url('+c.toDataURL()+')'}catch(e){}
 const VIEWS=['sky','today','year','events','all'],fromHash=()=>{const h=location.hash.slice(1);return VIEWS.includes(h)?h:''};if(fromHash())S.tab=fromHash();
 addEventListener('hashchange',()=>{const h=fromHash();if(h&&h!==$('app').dataset.tab)setTab(h)});
@@ -912,7 +940,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=n
 
 <script>
 (()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b12',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
+const BUILD='b13',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
 if(pwa)document.documentElement.classList.add('pwa');
 const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
 const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
