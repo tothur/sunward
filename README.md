@@ -2,7 +2,7 @@
 
 Follow the light. A sun tracker for the web: a living sky that follows the sun, daily and yearly solar events, solstices, moon phase, and layouts for phones, foldables, tablets and laptops.
 
-Live site: https://tothur.github.io/zenith-sun-tracker/
+Live site: https://tothur.github.io/sunward/
 
 ## Install
 
