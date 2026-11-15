@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sunward">
-<style>:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}html{background:#070b16}html,body{height:100dvh}body>.app{position:fixed;inset:0;height:auto}.pwa{--sat:calc(env(safe-area-inset-top,0px) + 18px)}.pwa body>.app{bottom:auto;height:max(100%,100vh)}</style></head><body>
+<style>:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}html{background:#070b16}html,body{height:100dvh}body>.app{position:fixed;inset:0;height:auto}.pwa{--sat:calc(env(safe-area-inset-top,0px) + 18px)}.pwa body>.app{bottom:auto;height:max(100%,100vh)}body{margin:0}[hidden]{display:none!important}</style></head><body>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -833,7 +833,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=n
 
 <script>
 (()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b7',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
+const BUILD='b8',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
 if(pwa)document.documentElement.classList.add('pwa');
 const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
 const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
