@@ -54,6 +54,7 @@ small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opac
 .hero[data-mode=min] #locBtn,.hero[data-mode=min] #hcBtn{display:none}
 .hero[data-mode=min] .hero-top .pill{background:rgba(255,255,255,.1)}
 .hero[data-mode=min] .headline,.hero[data-mode=min] .hero-foot,.hero[data-mode=min] .hint,.hero[data-mode=min] .tk{display:none}
+.hero[data-mode=min] .curve path{filter:drop-shadow(0 0 4px rgba(255,255,255,.28))}
 .hero[data-mode=full] .mini-head,.hero[data-mode=full] .mini-foot{display:none}
 .ground::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;background:radial-gradient(ellipse 16% 100% at var(--sx,50%) 0,var(--refl,transparent),transparent 78%),radial-gradient(ellipse 75% 26% at var(--sx,50%) 0,var(--refl2,transparent),transparent 72%)}
 .curve{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -570,7 +571,7 @@ function season(loc,ts){
 const memo={};const changed=(k,v)=>memo[k]===v?false:(memo[k]=v,true);
 const shown=el=>el.offsetParent!==null;
 const hero=$('hero'),curve=$('curve');
-let geo={W:0,H:0,hy:0,sc:1,xy:[]};
+let geo={W:0,H:0,hy:0,sc:1,xy:[],m:0,xw:0,Y:a=>0};
 
 function tint(k){const r=document.documentElement.style,m=(c,f,b)=>rgb(c.map((v,i)=>Math.round(v*f+b[i])));
   r.setProperty('--accent',rgb(k[5]));r.setProperty('--pane',m(k[0],.2,[5,7,13]));r.setProperty('--p1',m(k[0],.5,[6,8,16]));r.setProperty('--p2',m(k[1],.3,[6,8,16]));r.setProperty('--p3',m(k[2],.1,[5,6,12]));r.setProperty('--orb',rgb(k[4],.2))}
@@ -578,12 +579,14 @@ function solarDay(day){if(day.sp===undefined){day.sp='';const yr=new Date(day.wa
 function heroStatic(day){
   const W=hero.clientWidth,H=hero.clientHeight;if(!W||!H)return;
   const yr=new Date(day.wallMid).getUTCFullYear(),sol=[1,3].map(k=>({k,d:getDay(S.loc,seasonPoint(yr,k))}));
-  const min=S.min,hy=Math.round(H*(min?.68:.62)),foot=hero.querySelector('.hero-foot').offsetHeight,mx=Math.max(day.mx,sol[0].d.mx,sol[1].d.mx),mn=Math.min(day.mn,sol[0].d.mn,sol[1].d.mn),sc=Math.min(H*(min?.36:.3)/Math.max(mx,24),Math.max(40,H-hy-foot-10)/Math.max(-mn,24));
-  const xy=day.pts.map((p,i)=>[i/96*W,hy-p.alt*sc]);geo={W,H,hy,sc,xy};
+  const min=S.min,hy=Math.round(H*(min?.68:.62)),foot=hero.querySelector(min?'.mini-foot':'.hero-foot').offsetHeight,mx=Math.max(day.mx,sol[0].d.mx,sol[1].d.mx),sc=H*(min?.36:.3)/Math.max(mx,24);
+  // Above the horizon the path is true to scale; below it the depth is eased so night becomes a shallow, rounded dip instead of a plunge
+  const D=Math.min(H*.3,Math.max(40,H-hy-foot-12)*1.8),Y=a=>{if(a>=0)return hy-a*sc;const q=-a*sc/D;return hy+D*q/(1+q)},m=min?W*(W<520?.05:.14):0,xw=W-2*m;
+  const xy=day.pts.map((p,i)=>[m+i/96*xw,Y(p.alt)]),dmax=Math.max(8,...xy.map(p=>p[1]-hy));geo={W,H,hy,sc,xy,Y,m,xw};
   hero.style.setProperty('--hy',hy+'px');
   const step=W<520?6:3;let ticks='';
   for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line class="tk" x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text class="tk" x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
-  const fd=min?`<defs>${[['fa',.38],['fb',.95]].map(([id,o])=>`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${hy}" x2="0" y2="${(hy+(H-hy)*.78).toFixed(1)}"><stop offset="0" stop-color="#fff" stop-opacity="${o}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`).join('')}</defs>`:'';
+  const fd=min?`<defs>${[['fa',.5],['fb',.95]].map(([id,o])=>`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${hy}" x2="0" y2="${(hy+dmax*1.04).toFixed(1)}"><stop offset="0" stop-color="#fff" stop-opacity="${o}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`).join('')}</defs>`:'';
   curve.setAttribute('viewBox',`0 0 ${W} ${H}`);
   curve.innerHTML=`${fd}<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="${min?'url(#fa)':'rgba(255,255,255,.36)'}" stroke-width="1.3" stroke-linecap="round"/>
   <path id="past" fill="none" stroke="${min?'url(#fb)':'rgba(255,255,255,.92)'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -602,7 +605,7 @@ function renderHero(day,ts){
   if(changed('heroS',day.key+hero.clientWidth+'x'+hero.clientHeight+S.min))heroStatic(day);
   const{W,hy,sc,xy}=geo;if(!W)return;
   const f=clamp((ts-day.start)/DAY,0,1),pos=sunPos(ts,loc.lat,loc.lng),rising=sunPos(ts+6e4,loc.lat,loc.lng).alt>pos.alt;
-  const sx=f*W,sy=hy-pos.alt*sc,n=Math.floor(f*96);
+  const sx=geo.m+f*geo.xw,sy=geo.Y(pos.alt),n=Math.floor(f*96);
   $('past').setAttribute('d','M'+xy.slice(0,n+1).map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+`L${sx.toFixed(1)} ${sy.toFixed(1)}`);
   const a=pos.alt,up=a>-.833,sun=$('sun'),drop=$('drop'),st=hero.style,set=(k,v)=>st.setProperty(k,v);
   const low=clamp(1-a/12,0,1),ds=clamp(Math.min(W,geo.H)*.04,18,30)*(1+.35*low);
@@ -791,7 +794,7 @@ hero.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;dra
 hero.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.on){const dx=Math.abs(e.clientX-drag.x),dy=Math.abs(e.clientY-drag.y);if(dx>8&&dx>dy){drag.on=true;S.scrub=true;try{hero.setPointerCapture(drag.id)}catch(_){}}else if(dy>10){drag=null;return}}if(drag.on)scrubTo(e)});
 const endDrag=e=>{if(!drag)return;if(!drag.on&&e.type==='pointerup'&&Math.abs(e.clientX-drag.x)<8)scrubTo(e);drag=null;S.scrub=false;schedule()};
 hero.addEventListener('pointerup',endDrag);hero.addEventListener('pointercancel',endDrag);
-function scrubTo(e){const r=hero.getBoundingClientRect(),day=getDay(S.loc,T());$('hint').classList.add('off');setView(day.start+clamp((e.clientX-r.left)/r.width,0,.9999)*DAY)}
+function scrubTo(e){const r=hero.getBoundingClientRect(),day=getDay(S.loc,T());$('hint').classList.add('off');setView(day.start+clamp((e.clientX-r.left-(geo.m||0))/(geo.xw||r.width),0,.9999)*DAY)}
 hero.addEventListener('keydown',e=>{const k={ArrowLeft:-6e5,ArrowRight:6e5,ArrowDown:-HR,ArrowUp:HR,PageDown:-DAY,PageUp:DAY}[e.key];if(k){e.preventDefault();$('hint').classList.add('off');setView(T()+k)}else if(e.key==='Escape'||e.key==='Home'){travel(null)}});
 document.addEventListener('click',e=>{if(e.target.closest('#backBtn,[data-now]'))travel(null,1100);const g=e.target.closest('[data-go]');if(g)travel(+g.dataset.go+(T()-getDay(S.loc,T()).start),1300)});
 
