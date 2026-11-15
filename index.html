@@ -280,10 +280,16 @@ h2{font:700 28px/1.1 var(--display);letter-spacing:-.022em}
 .tp.on{background:rgba(255,255,255,.1)}
 .prog{height:4px}
 .legend{font-size:12px;color:rgba(255,255,255,.6)}
+.keys{display:grid;overflow-y:auto}
+.keys div{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:11px 4px;border-bottom:1px solid var(--line)}
+.keys div:last-child{border-bottom:0}
+kbd{display:inline-block;min-width:26px;padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.14);box-shadow:inset 0 -1px 0 rgba(0,0,0,.3);font:500 12px var(--ui);text-align:center}
+#keysBtn{align-self:center;margin-top:12px;display:none}
+@media (hover:hover) and (pointer:fine){#keysBtn{display:block}}
 </style>
 
 <div class="app" id="app" data-tab="today">
-  <section class="hero" id="hero" tabindex="0" role="slider" aria-label="Time of day. Drag or use arrow keys to move through the day." aria-valuemin="0" aria-valuemax="24">
+  <section class="hero" id="hero" tabindex="0" role="slider" aria-label="Time of day. Drag, or use the left and right arrow keys, to move through the day." aria-valuemin="0" aria-valuemax="24">
     <div class="sky"><canvas id="st1"></canvas><canvas id="st2" class="tw"></canvas><div class="glow"></div></div>
     <div class="ground"></div>
     <div class="haze"></div>
@@ -362,6 +368,24 @@ h2{font:700 28px/1.1 var(--display);letter-spacing:-.022em}
     <header><h2>Places</h2><div style="display:flex;gap:8px"><button class="btn" id="hereBtn">Use my location</button><button class="btn" id="doneBtn">Done</button></div></header>
     <input id="q" type="search" placeholder="Add a city" autocomplete="off" aria-label="Search cities">
     <div class="list" id="plist"></div>
+    <button class="btn" id="keysBtn">Keyboard shortcuts</button>
+  </div>
+</div>
+<div class="scrim" id="keys" hidden>
+  <div class="sheet gut" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <header><h2>Shortcuts</h2><button class="btn" id="keysDone">Done</button></header>
+    <div class="keys">
+      <div><span>Sky, Today, Year, Events</span><span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span></div>
+      <div><span>Everything at once (wide screens)</span><kbd>5</kbd></div>
+      <div><span>Minimal or detailed sky</span><kbd>D</kbd></div>
+      <div><span>12-hour or 24-hour time</span><kbd>T</kbd></div>
+      <div><span>Places</span><kbd>L</kbd></div>
+      <div><span>Back to now</span><span><kbd>N</kbd> <kbd>Esc</kbd></span></div>
+      <div><span>Move 10 minutes</span><span><kbd>←</kbd> <kbd>→</kbd></span></div>
+      <div><span>Move 1 hour</span><span><kbd>Shift</kbd> <kbd>←</kbd> <kbd>→</kbd></span></div>
+      <div><span>Previous or next day</span><span><kbd>[</kbd> <kbd>]</kbd></span></div>
+      <div><span>Show this list</span><kbd>?</kbd></div>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast" hidden role="status"></div>
@@ -794,6 +818,7 @@ const wideMQ=matchMedia('(min-width:1240px)');
 function setTab(tab,keep){
   S.tab=tab;const eff=tab==='all'&&!wideMQ.matches?'today':tab;$('app').dataset.tab=eff;
   [...$('tabs').children].forEach((b,i)=>{const on=b.dataset.tab===eff;b.setAttribute('aria-selected',on);if(on)$('tabs').style.setProperty('--i',i)});
+  try{history.replaceState(null,'','#'+eff)}catch(e){}
   persist();if(!keep){$('app').scrollTop=0;$('pane').scrollTop=0}render();
 }
 wideMQ.addEventListener('change',()=>setTab(S.tab,true));
@@ -809,7 +834,6 @@ hero.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.on){const dx=Ma
 const endDrag=e=>{if(!drag)return;if(!drag.on&&e.type==='pointerup'&&Math.abs(e.clientX-drag.x)<8)scrubTo(e);drag=null;S.scrub=false;schedule()};
 hero.addEventListener('pointerup',endDrag);hero.addEventListener('pointercancel',endDrag);
 function scrubTo(e){const r=hero.getBoundingClientRect(),day=getDay(S.loc,T());$('hint').classList.add('off');setView(day.start+clamp((e.clientX-r.left-(geo.m||0))/(geo.xw||r.width),0,.9999)*DAY)}
-hero.addEventListener('keydown',e=>{const k={ArrowLeft:-6e5,ArrowRight:6e5,ArrowDown:-HR,ArrowUp:HR,PageDown:-DAY,PageUp:DAY}[e.key];if(k){e.preventDefault();$('hint').classList.add('off');setView(T()+k)}else if(e.key==='Escape'||e.key==='Home'){travel(null)}});
 document.addEventListener('click',e=>{if(e.target.closest('#backBtn,[data-now]'))travel(null,1100);const g=e.target.closest('[data-go]');if(g)travel(+g.dataset.go+(T()-getDay(S.loc,T()).start),1300)});
 
 let cdrag=false;
@@ -834,7 +858,20 @@ function choose(p){S.loc=p;persist();closeSheet();travel(S.view,1)}
 const openSheet=()=>{q.value='';scrim.hidden=false;renderPlaces()},closeSheet=()=>{scrim.hidden=true;$('locBtn').focus()};
 $('locBtn').addEventListener('click',openSheet);$('mLoc').addEventListener('click',openSheet);$('doneBtn').addEventListener('click',closeSheet);
 scrim.addEventListener('click',e=>{if(e.target===scrim)closeSheet()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!scrim.hidden)closeSheet()});
+const keys=$('keys');
+$('keysBtn').addEventListener('click',()=>{closeSheet();keys.hidden=false});$('keysDone').addEventListener('click',()=>keys.hidden=true);keys.addEventListener('click',e=>{if(e.target===keys)keys.hidden=true});
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='Escape'){if(!keys.hidden)keys.hidden=true;else if(!scrim.hidden)closeSheet();else travel(null);return}
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||!scrim.hidden)return;
+  const k=e.key.toLowerCase(),step=ms=>{e.preventDefault();$('hint').classList.add('off');setView(T()+ms)};
+  if(k==='?'){keys.hidden=!keys.hidden;return}
+  if(!keys.hidden)return;
+  if(k>='1'&&k<='5'){const t=['sky','today','year','events','all'][k-1];if(t!=='all'||wideMQ.matches)setTab(t)}
+  else if(k==='d')setMode(!S.min);else if(k==='t')setClock(!H24);else if(k==='l')openSheet();else if(k==='n'||k==='home')travel(null);
+  else if(k==='arrowleft')step(e.shiftKey?-HR:-6e5);else if(k==='arrowright')step(e.shiftKey?HR:6e5);
+  else if(k==='[')step(-DAY);else if(k===']')step(DAY);
+});
 q.addEventListener('input',renderPlaces);
 $('plist').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const d=b.dataset;
@@ -865,7 +902,9 @@ setInterval(()=>{if(S.view==null&&!S.anim&&!document.hidden)render()},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
 $('hcBtn').textContent=H24?'24h':'12h';setMode(S.min,true);
 try{const c=document.createElement('canvas');c.width=c.height=160;const x=c.getContext('2d'),im=x.createImageData(160,160);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);$('grain').style.backgroundImage='url('+c.toDataURL()+')'}catch(e){}
-setTab(['sky','today','year','events','all'].includes(S.tab)?S.tab:(wideMQ.matches?'all':'today'));
+const VIEWS=['sky','today','year','events','all'],fromHash=()=>{const h=location.hash.slice(1);return VIEWS.includes(h)?h:''};if(fromHash())S.tab=fromHash();
+addEventListener('hashchange',()=>{const h=fromHash();if(h&&h!==$('app').dataset.tab)setTab(h)});
+setTab(VIEWS.includes(S.tab)?S.tab:(wideMQ.matches?'all':'today'));
 if(!reduced){S.view=getDay(S.loc,Date.now()).start;render();travel(null,2400)}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=null;schedule()});
 })();
@@ -873,7 +912,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=n
 
 <script>
 (()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b11',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
+const BUILD='b12',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
 if(pwa)document.documentElement.classList.add('pwa');
 const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
 const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);

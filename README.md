@@ -12,6 +12,10 @@ Sunward is a progressive web app and works offline once opened.
 - **Android / Chrome / Edge:** tap the Install button in the app, or use the browser's install option.
 - **Mac:** in Safari use File, Add to Dock; in Chrome or Edge use the install icon in the address bar.
 
+## Keyboard
+
+`1`–`4` switch views (`5` shows everything on wide screens), `D` minimal or detailed sky, `T` 12/24-hour time, `L` places, `←` `→` move 10 minutes (with Shift, 1 hour), `[` `]` previous or next day, `N` or `Esc` back to now, `?` shows the list.
+
 ## Files
 
 - `zenith.html` is the source: one self-contained page, no dependencies apart from two web fonts.
