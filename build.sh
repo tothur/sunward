@@ -18,17 +18,7 @@ HEAD
   cat zenith.html
   cat <<'TAIL'
 
-<script>
-(()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b13',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
-if(pwa)document.documentElement.classList.add('pwa');
-const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
-const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
-  const r=p.getBoundingClientRect(),a=document.getElementById('app').getBoundingClientRect(),h=document.getElementById('hero').getBoundingClientRect(),v=document.createElement('div');p.remove();v.style.cssText='position:fixed;top:0;height:100vh;width:1px';document.body.append(v);const vh=v.getBoundingClientRect().height;v.remove();
-  const t=[BUILD,'pwa '+pwa,'nav.standalone '+navigator.standalone,'mode '+['standalone','fullscreen','minimal-ui','browser'].filter(dm),'inner '+innerWidth+'x'+innerHeight,'client '+document.documentElement.clientHeight,'100vh '+R(vh),'vv '+(window.visualViewport?R(visualViewport.height)+' @'+R(visualViewport.offsetTop):'-'),'screen '+screen.width+'x'+screen.height,'safe top '+R(r.top)+' bottom '+R(innerHeight-r.bottom),'app '+R(a.top)+'..'+R(a.bottom),'hero '+R(h.top)+'..'+R(h.bottom),'body '+R(document.body.getBoundingClientRect().height)].join(' · ');
-  const d=document.getElementById('dbg')||Object.assign(document.createElement('div'),{id:'dbg'});d.style.cssText='position:fixed;z-index:99;left:16px;right:16px;top:40%;padding:12px;border-radius:12px;background:#000c;color:#fff;font:12px/1.5 ui-monospace,monospace';d.textContent=t;d.onclick=()=>d.remove();document.body.append(d)};ring.addEventListener('click',show);const md=document.getElementById('mDate');md.style.pointerEvents='auto';md.addEventListener('pointerdown',e=>e.stopPropagation());md.addEventListener('click',show);
-})();
-</script>
+<script>if(navigator.standalone||matchMedia('(display-mode:standalone)').matches||matchMedia('(display-mode:fullscreen)').matches)document.documentElement.classList.add('pwa');</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 </body></html>
 TAIL
