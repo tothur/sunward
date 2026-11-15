@@ -44,14 +44,14 @@ small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opac
 .sky::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 140% 105% at 50% 100%,transparent 52%,rgba(0,2,14,.42) 100%)}
 .haze{position:absolute;left:-4%;right:-4%;top:calc(var(--hy,62%) - 4.5cqh);height:9cqh;background:linear-gradient(to bottom,transparent,var(--haze,transparent) 47%,var(--haze2,transparent) 54%,transparent);filter:blur(7px);pointer-events:none}
 .grain{position:absolute;inset:0;opacity:.075;mix-blend-mode:overlay;pointer-events:none;background-size:160px}
-.mini-head{position:absolute;left:0;right:0;top:calc(max(13cqh,76px) + var(--sat,0px));display:grid;justify-items:center;gap:.5cqh;text-align:center;pointer-events:none;text-shadow:0 1px 18px rgba(0,0,0,.18)}
+.mini-head{position:absolute;left:0;right:0;top:calc(max(11cqh,72px) + var(--sat,0px));display:grid;justify-items:center;gap:.5cqh;text-align:center;pointer-events:none;text-shadow:0 1px 18px rgba(0,0,0,.18)}
 .mini-head div{font-size:clamp(26px,min(7.2cqw,6cqh),46px);line-height:1.12;letter-spacing:-.022em}
 #mEv{font-weight:600}
 #mDur{font-weight:400;color:rgba(255,255,255,.86)}
 .mini-head #mIn{font-size:clamp(10px,1.7cqh,13px);font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1em}
-.mini-foot{position:absolute;inset:auto 0 0 0;padding-bottom:var(--foot);display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.62);pointer-events:none}
+.mini-head #mDate{font-size:clamp(12px,1.9cqh,15px);font-weight:500;letter-spacing:0;color:rgba(255,255,255,.72);margin-bottom:.7cqh}
 .hero[data-mode=min] .headline,.hero[data-mode=min] .hero-foot,.hero[data-mode=min] .hint,.hero[data-mode=min] .tk{display:none}
-.hero[data-mode=full] .mini-head,.hero[data-mode=full] .mini-foot{display:none}
+.hero[data-mode=full] .mini-head,.hero[data-mode=full] .mn{display:none}
 .ground::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;background:radial-gradient(ellipse 16% 100% at var(--sx,50%) 0,var(--refl,transparent),transparent 78%),radial-gradient(ellipse 75% 26% at var(--sx,50%) 0,var(--refl2,transparent),transparent 72%)}
 .curve{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .curve text{font:500 10px var(--ui);fill:rgba(255,255,255,.5);text-anchor:middle;letter-spacing:.04em}
@@ -260,8 +260,7 @@ h2{margin:0;font:600 26px/1.1 var(--display);letter-spacing:-.025em}
         <span id="ringTxt"></span>
       </div>
     </div>
-    <div class="mini-head"><div id="mEv"></div><div id="mIn"></div><div id="mDur"></div></div>
-    <div class="mini-foot gut"><span id="mDate"></span><span id="mSun"></span></div>
+    <div class="mini-head"><div id="mDate"></div><div id="mEv"></div><div id="mIn"></div><div id="mDur"></div></div>
     <div class="hint" id="hint">Drag across the sky to move through the day</div>
     <button class="pill back" id="backBtn" hidden>Back to now</button>
     <div class="hero-foot gut">
@@ -548,11 +547,12 @@ function heroStatic(day){
   hero.style.setProperty('--hy',hy+'px');
   const step=W<520?6:3;let ticks='';
   for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line class="tk" x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text class="tk" x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
+  const mk=k=>{const v=day.t[k];if(v==null)return'';const x=(v-day.start)/DAY*W;return`<circle class="mn" cx="${x.toFixed(1)}" cy="${hy}" r="2.5" fill="rgba(255,255,255,.9)"/><text class="mn" x="${clamp(x,34,W-34).toFixed(1)}" y="${hy+25}" style="font-size:12px;letter-spacing:0;fill:rgba(255,255,255,.74)">${esc(tf(S.loc.tz).format(v))}</text>`};
   curve.setAttribute('viewBox',`0 0 ${W} ${H}`);
   curve.innerHTML=`<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.36)" stroke-width="1.3" stroke-linecap="round"/>
   <path id="past" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   <line class="tk" x1="0" x2="${W}" y1="${hy}" y2="${hy}" stroke="rgba(255,255,255,.28)"/>${ticks}
-  <line id="drop" class="tk" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
+  ${mk('sunrise')}${mk('sunset')}<line id="drop" class="tk" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
   <circle id="sun" r="6" fill="#0a0c14" stroke="rgba(255,255,255,.75)" stroke-width="1.5"/>`;
   if(changed('stars',W+'x'+hy))drawStars(W,hy);
 }
@@ -593,7 +593,7 @@ function renderHero(day,ts){
   if(changed('nx',nt)){$('hNext').innerHTML=nt;$('mEv').textContent=nowEv?nowEv.label:nx?nx.label:(day.noonAlt>0?'Midnight sun':'Polar night');$('mIn').textContent=nowEv?'now':nx?'in':'';$('mDur').textContent=nowEv||!nx?'':durL(nx.ts-ts)}
   const t=day.t,left=t.sunrise==null?(day.len?1:0):clamp((t.sunset-ts)/(t.sunset-t.sunrise),0,1),pct=Math.round(left*100);
   if(changed('rg',pct)){$('ringFg').style.strokeDashoffset=100-pct;$('ringTxt').textContent=pct+'% left'}
-  if(changed('ft',day.key)){$('mSun').innerHTML='↑ '+tH(t.sunrise,loc.tz)+'&ensp;↓ '+tH(t.sunset,loc.tz);$('fRise').innerHTML=tH(t.sunrise,loc.tz);$('fSet').innerHTML=tH(t.sunset,loc.tz);$('fLen').textContent=durS(day.len)}
+  if(changed('ft',day.key)){$('fRise').innerHTML=tH(t.sunrise,loc.tz);$('fSet').innerHTML=tH(t.sunset,loc.tz);$('fLen').textContent=durS(day.len)}
   if(changed('ln',loc.id))$('locName').textContent=loc.name;
   hero.setAttribute('aria-valuenow',(f*24).toFixed(2));hero.setAttribute('aria-valuetext',tf(loc.tz).format(ts)+', '+p1+' '+p2);
   
