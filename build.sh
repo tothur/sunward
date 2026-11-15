@@ -13,7 +13,7 @@ cd "$(dirname "$0")"
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sunward">
-<style>:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}html{background:#070b16}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<style>:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}html{background:#070b16}html,body{height:100dvh}body>.app{position:fixed;inset:0;height:auto}body{margin:0}[hidden]{display:none!important}</style></head><body>
 HEAD
   cat zenith.html
   cat <<'TAIL'
