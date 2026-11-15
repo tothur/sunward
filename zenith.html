@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<title>Zenith Sun Tracker</title>
+<title>Sunward</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap">
 <style>
 /* Layout: the sky is the page. One pane on phones (sky above, cards below, floating tabs),
@@ -230,6 +230,7 @@ h2{margin:0;font:400 30px/1.05 var(--display);letter-spacing:-.005em}
     <div class="hero-top gut">
       <button class="pill" id="locBtn" aria-haspopup="dialog"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.6 1.4 1.7 6.5c-.5.2-.5.9 0 1.1l4.9 1.8 1.8 4.9c.2.5.9.5 1.1 0z"/></svg><span id="locName">—</span></button>
       <button class="pill" id="hcBtn" aria-label="Switch between 12-hour and 24-hour time"></button>
+      <button class="pill" id="instBtn" hidden>Install</button>
     </div>
     <div class="headline gut">
       <div>
@@ -775,6 +776,12 @@ $('hereBtn').addEventListener('click',()=>{
     S.places=[p,...S.places.filter(x=>x.id!=='here')];choose(p);
   },fail,{timeout:8000,maximumAge:6e5})}catch(e){fail()}
 });
+
+/* Install: Chromium offers a prompt we can trigger from our own button; other browsers install from their menus */
+let instEv=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;$('instBtn').hidden=false});
+addEventListener('appinstalled',()=>{instEv=null;$('instBtn').hidden=true});
+$('instBtn').addEventListener('click',async()=>{if(!instEv)return;instEv.prompt();try{await instEv.userChoice}catch(e){}instEv=null;$('instBtn').hidden=true});
 
 /* ───────── Boot ───────── */
 new ResizeObserver(schedule).observe(hero);new ResizeObserver(schedule).observe(box);

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a54"/><stop offset=".42" stop-color="#3a3080"/><stop offset=".72" stop-color="#b05480"/><stop offset=".9" stop-color="#f2844e"/><stop offset="1" stop-color="#fdb05c"/></linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1838"/><stop offset=".35" stop-color="#0b0e26"/><stop offset="1" stop-color="#05070f"/></linearGradient>
+    <radialGradient id="h" cx="50" cy="60" r="34" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffd696" stop-opacity=".6"/><stop offset="1" stop-color="#ffd696" stop-opacity="0"/></radialGradient>
+    <radialGradient id="d" cx="50" cy="60" r="19" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff7de"/><stop offset="1" stop-color="#ffce70"/></radialGradient>
+    <clipPath id="c"><rect width="100" height="60"/></clipPath>
+  </defs>
+  <rect width="100" height="60" fill="url(#s)"/>
+  <g clip-path="url(#c)"><circle cx="50" cy="60" r="34" fill="url(#h)"/><circle cx="50" cy="60" r="40" fill="#ffe6be" opacity=".09"/><circle cx="50" cy="60" r="30" fill="#ffe6be" opacity=".11"/><circle cx="50" cy="60" r="19" fill="url(#d)"/></g>
+  <rect y="60" width="100" height="40" fill="url(#g)"/>
+  <g fill="#ffc46e"><rect x="31" y="63.900" width="38" height="3.200" rx="1.600" opacity=".95"/><rect x="35" y="70.100" width="30" height="3.200" rx="1.600" fill="#fbb166" opacity=".8"/><rect x="39" y="76.300" width="22" height="3.200" rx="1.600" fill="#f79e5f" opacity=".65"/><rect x="42.500" y="82.500" width="15" height="3.200" rx="1.600" fill="#f48b57" opacity=".5"/><rect x="46" y="88.700" width="8" height="3.200" rx="1.600" fill="#f07850" opacity=".38"/></g>
+</svg>
