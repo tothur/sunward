@@ -26,8 +26,8 @@
   --pane:#070b16; --accent:#8fb8ff;
   --sun:#ff9d4d; --gold:#ffd166; --blue:#6aa8ff; --violet:#9a86ff; --noon:#ffffff;
   --b-night:#0a0e26; --b-astro:#1d1a4d; --b-naut:#3b2a73; --b-civil:#8a4a86; --b-gold:#f2a268; --b-day:#62b2f2;
-  --display:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --ui:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,"Geist","Segoe UI",Roboto,sans-serif;
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,"Geist","Segoe UI",Roboto,sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box}
@@ -52,7 +52,18 @@ small{font-size:.62em;font-weight:500;letter-spacing:.04em;margin-left:.2em;opac
 .disc{position:absolute;left:0;top:0;width:var(--ds,28px);height:var(--ds,28px);border-radius:50%;translate:calc(var(--sx,0px) - 50%) calc(var(--sy,0px) - 50%);scale:1 var(--sq,1);opacity:var(--disc-a,0);
   background:radial-gradient(circle,var(--d0,#fff) 0,var(--d0,#fff) 38%,var(--d1,#fff) 78%,var(--d2,#fff) 100%);
   box-shadow:0 0 calc(var(--ds,28px)*.22) var(--d1,#fff),0 0 calc(var(--ds,28px)*.9) var(--d2,#fff),0 0 calc(var(--ds,28px)*2.6) var(--d3,transparent)}
-.ground{position:absolute;inset:var(--hy,62%) 0 0 0;background:linear-gradient(to bottom,var(--g-top,#05060c),#020308 60%)}
+.ground{position:absolute;inset:var(--hy,62%) 0 0 0;background:linear-gradient(to bottom,var(--g-top,#05060c),#050507 48%,#020203)}
+.sky::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 140% 105% at 50% 100%,transparent 52%,rgba(0,2,14,.42) 100%)}
+.haze{position:absolute;left:-4%;right:-4%;top:calc(var(--hy,62%) - 4.5cqh);height:9cqh;background:linear-gradient(to bottom,transparent,var(--haze,transparent) 47%,var(--haze2,transparent) 54%,transparent);filter:blur(7px);pointer-events:none}
+.grain{position:absolute;inset:0;opacity:.075;mix-blend-mode:overlay;pointer-events:none;background-size:160px}
+.mini-head{position:absolute;left:0;right:0;top:calc(max(13cqh,76px) + var(--sat,0px));display:grid;justify-items:center;gap:.5cqh;text-align:center;pointer-events:none;text-shadow:0 1px 18px rgba(0,0,0,.18)}
+.mini-head div{font-size:clamp(26px,min(7.2cqw,6cqh),46px);line-height:1.12;letter-spacing:-.022em}
+#mEv{font-weight:600}
+#mDur{font-weight:400;color:rgba(255,255,255,.86)}
+.mini-head #mIn{font-size:clamp(10px,1.7cqh,13px);font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1em}
+.mini-foot{position:absolute;inset:auto 0 0 0;padding-bottom:var(--foot);display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;font-weight:500;color:rgba(255,255,255,.62);pointer-events:none}
+.hero[data-mode=min] .headline,.hero[data-mode=min] .hero-foot,.hero[data-mode=min] .hint,.hero[data-mode=min] .tk{display:none}
+.hero[data-mode=full] .mini-head,.hero[data-mode=full] .mini-foot{display:none}
 .ground::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;background:radial-gradient(ellipse 16% 100% at var(--sx,50%) 0,var(--refl,transparent),transparent 78%),radial-gradient(ellipse 75% 26% at var(--sx,50%) 0,var(--refl2,transparent),transparent 72%)}
 .curve{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .curve text{font:500 10px var(--ui);fill:rgba(255,255,255,.5);text-anchor:middle;letter-spacing:.04em}
@@ -240,11 +251,14 @@ h2{margin:0;font:600 26px/1.1 var(--display);letter-spacing:-.025em}
   <section class="hero" id="hero" tabindex="0" role="slider" aria-label="Time of day. Drag or use arrow keys to move through the day." aria-valuemin="0" aria-valuemax="24">
     <div class="sky"><canvas id="st1"></canvas><canvas id="st2" class="tw"></canvas><div class="glow"></div></div>
     <div class="ground"></div>
+    <div class="haze"></div>
+    <div class="grain" id="grain"></div>
     <svg class="curve" id="curve" aria-hidden="true"></svg>
     <div class="sunlayer"><div class="disc"></div></div>
     <div class="hero-top gut">
       <button class="pill" id="locBtn" aria-haspopup="dialog"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.6 1.4 1.7 6.5c-.5.2-.5.9 0 1.1l4.9 1.8 1.8 4.9c.2.5.9.5 1.1 0z"/></svg><span id="locName">—</span></button>
       <button class="pill" id="hcBtn" aria-label="Switch between 12-hour and 24-hour time"></button>
+      <button class="pill" id="modeBtn" aria-label="Switch between the minimal and detailed sky"></button>
       <button class="pill" id="instBtn" hidden>Install</button>
     </div>
     <div class="headline gut">
@@ -258,6 +272,8 @@ h2{margin:0;font:600 26px/1.1 var(--display);letter-spacing:-.025em}
         <span id="ringTxt"></span>
       </div>
     </div>
+    <div class="mini-head"><div id="mEv"></div><div id="mIn"></div><div id="mDur"></div></div>
+    <div class="mini-foot gut"><span id="mDate"></span><span id="mSun"></span></div>
     <div class="hint" id="hint">Drag across the sky to move through the day</div>
     <button class="pill back" id="backBtn" hidden>Back to now</button>
     <div class="hero-foot gut">
@@ -364,6 +380,7 @@ const dLong=(ts,tz)=>fmt(tz,'D',{month:'long',day:'numeric'}).format(ts);
 const dMed=(ts,tz)=>fmt(tz,'m',{month:'short',day:'numeric'}).format(ts);
 const hourLbl=h=>H24?String(h).padStart(2,'0'):fmt('UTC','h',{hour:'numeric',hourCycle:'h12'}).format(Date.UTC(2000,0,1,h)).replace(/\s/g,' ');
 function dur(ms){const m=Math.max(0,Math.round(ms/6e4));if(m<60)return m+' min';const h=Math.floor(m/60);return h+' hr'+(m%60?' '+m%60+' min':'')}
+function durL(ms){const m=Math.round(ms/6e4),h=Math.floor(m/60),r=m%60,u=(n,w)=>n+' '+w+(n===1?'':'s');return m<1?'less than a minute':h?u(h,'hour')+(r?', '+u(r,'minute'):''):u(r,'minute')}
 function durS(ms){const m=Math.round(ms/6e4);return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m'}
 function delta(ms){if(Math.abs(ms)>4*HR)return'—';const s=Math.round(Math.abs(ms)/1e3);return(ms<0?'−':'+')+(s>=60?Math.floor(s/60)+'m ':'')+s%60+'s'}
 const inDays=n=>n<=0?'Today':n===1?'Tomorrow':'in '+n+' days';
@@ -377,16 +394,16 @@ const SKY=[
  [-12,'#050818','#091030','#0f1a44','#18245a','#283268','#9a8fff'],
  [-8,'#0a1230','#142252','#23336f','#4c4280','#8c5273','#b497ff'],
  [-5,'#101c48','#1f3270','#414c8e','#a06088','#ea7c50','#d6a2f0'],
- [-2.5,'#16285e','#2c4a8e','#7470aa','#e48e7c','#f98f3c','#ffb38a'],
- [-.5,'#1d3876','#3c66ac','#9ea4cc','#f7b47c','#fb8a34','#ffc078'],
- [1.5,'#214487','#4a7cc0','#b6c2da','#f9d096','#fda544','#ffd27a'],
- [4,'#2558a6','#5a94d6','#c2d8ea','#fbe4b6','#fdc777','#ffe0a0'],
+ [-2.5,'#132250','#284078','#6c6498','#de8470','#f7822e','#ffb38a'],
+ [-.5,'#172a52','#34507e','#8c93ad','#f0a860','#f97f24','#ffc078'],
+ [1.5,'#1b345f','#3d6090','#93a5b4','#f2c070','#fb962e','#ffd27a'],
+ [4,'#21487f','#4d7fb4','#a9c2d2','#f6dca0','#fdba5e','#ffe0a0'],
  [8,'#2a68c0','#62a2e2','#b4d6f2','#e6eee4','#f6e2b8','#cfe2ff'],
  [15,'#2a6fd0','#5a9ce6','#96c6f2','#c2def6','#dcecf6','#a8d4ff'],
  [40,'#1b5fc8','#3f8ae4','#6eb0f0','#9fcff6','#bee0f8','#9ccbff'],
  [90,'#1857c0','#3b86e2','#6aadee','#9ccdf5','#bbdef7','#9ccbff']]
   .map(r=>[r[0],...r.slice(1).map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)))]);
-const SUN=[[-3,'#ffb27a','#ff7a3d','#ee4526'],[-1,'#ffc48a','#ff8a3a','#ff5a2a'],[1.5,'#ffe0aa','#ffae48','#ff782c'],[6,'#fff3cf','#ffdc80','#ffb347'],[14,'#fffbea','#fff0b8','#ffd980'],[90,'#ffffff','#fff8dc','#ffecb0']]
+const SUN=[[-3,'#ffb27a','#ff7a3d','#ee4526'],[-1,'#fff0d0','#ffb24a','#ff6a2a'],[1.5,'#fffaf0','#ffd265','#ff9a30'],[6,'#fff3cf','#ffdc80','#ffb347'],[14,'#fffbea','#fff0b8','#ffd980'],[90,'#ffffff','#fff8dc','#ffecb0']]
   .map(r=>[r[0],...r.slice(1).map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)))]);
 function interp(T,alt){let i=1;while(i<T.length-1&&T[i][0]<alt)i++;const a=T[i-1],b=T[i],t=clamp((alt-a[0])/(b[0]-a[0]),0,1);return a.slice(1).map((c,k)=>c.map((v,j)=>Math.round(v+(b[k+1][j]-v)*t)))}
 const sky=alt=>interp(SKY,alt);
@@ -471,11 +488,11 @@ const saved=store.get();
 const home=CITIES.find(c=>c.tz===myTz)||city('London');
 const S={
   places:(saved.places&&saved.places.length?saved.places:[home,...['Tokyo','New York','Nairobi','Tromsø','Sydney'].map(city).filter(c=>c.id!==home.id)]),
-  loc:null,view:null,tab:saved.tab||'',anim:0,scrub:false
+  loc:null,view:null,tab:saved.tab||'',min:saved.min??true,anim:0,scrub:false
 };
 S.loc=S.places.find(p=>p.id===saved.sel)||S.places[0];
 try{H24=saved.h24??/h2[34]/.test(new Intl.DateTimeFormat(undefined,{hour:'numeric'}).resolvedOptions().hourCycle||'')}catch(e){}
-const persist=()=>store.set({places:S.places,sel:S.loc.id,tab:S.tab,h24:H24});
+const persist=()=>store.set({places:S.places,sel:S.loc.id,tab:S.tab,h24:H24,min:S.min});
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const T=()=>S.view??Date.now();
 const $=id=>document.getElementById(id);
@@ -538,16 +555,16 @@ function solarDay(day){if(day.sp===undefined){day.sp='';const yr=new Date(day.wa
 function heroStatic(day){
   const W=hero.clientWidth,H=hero.clientHeight;if(!W||!H)return;
   const yr=new Date(day.wallMid).getUTCFullYear(),sol=[1,3].map(k=>({k,d:getDay(S.loc,seasonPoint(yr,k))}));
-  const hy=Math.round(H*.62),foot=hero.querySelector('.hero-foot').offsetHeight,mx=Math.max(day.mx,sol[0].d.mx,sol[1].d.mx),mn=Math.min(day.mn,sol[0].d.mn,sol[1].d.mn),sc=Math.min(H*.3/Math.max(mx,24),Math.max(40,H-hy-foot-10)/Math.max(-mn,24));
+  const min=S.min,hy=Math.round(H*(min?.68:.62)),foot=hero.querySelector('.hero-foot').offsetHeight,mx=Math.max(day.mx,sol[0].d.mx,sol[1].d.mx),mn=Math.min(day.mn,sol[0].d.mn,sol[1].d.mn),sc=Math.min(H*(min?.36:.3)/Math.max(mx,24),Math.max(40,H-hy-foot-10)/Math.max(-mn,24));
   const xy=day.pts.map((p,i)=>[i/96*W,hy-p.alt*sc]);geo={W,H,hy,sc,xy};
   hero.style.setProperty('--hy',hy+'px');
   const step=W<520?6:3;let ticks='';
-  for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
+  for(let h=1;h<24;h++){const x=h/24*W,big=h%step===0;ticks+=`<line class="tk" x1="${x}" x2="${x}" y1="${hy}" y2="${hy+(big?7:4)}" stroke="rgba(255,255,255,${big?.5:.25})"/>`;if(big)ticks+=`<text class="tk" x="${x}" y="${hy+20}">${hourLbl(h)}</text>`}
   curve.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  curve.innerHTML=`<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 5"/>
+  curve.innerHTML=`<path d="M${xy.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')}" fill="none" stroke="rgba(255,255,255,.36)" stroke-width="1.3" stroke-linecap="round"/>
   <path id="past" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="0" x2="${W}" y1="${hy}" y2="${hy}" stroke="rgba(255,255,255,.28)"/>${ticks}
-  <line id="drop" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
+  <line class="tk" x1="0" x2="${W}" y1="${hy}" y2="${hy}" stroke="rgba(255,255,255,.28)"/>${ticks}
+  <line id="drop" class="tk" stroke="rgba(255,255,255,.35)" stroke-dasharray="2 4"/>
   <circle id="sun" r="6" fill="#0a0c14" stroke="rgba(255,255,255,.75)" stroke-width="1.5"/>`;
   if(changed('stars',W+'x'+hy))drawStars(W,hy);
 }
@@ -558,13 +575,13 @@ function drawStars(W,h){
 }
 function renderHero(day,ts){
   const loc=S.loc;
-  if(changed('heroS',day.key+hero.clientWidth+'x'+hero.clientHeight))heroStatic(day);
+  if(changed('heroS',day.key+hero.clientWidth+'x'+hero.clientHeight+S.min))heroStatic(day);
   const{W,hy,sc,xy}=geo;if(!W)return;
   const f=clamp((ts-day.start)/DAY,0,1),pos=sunPos(ts,loc.lat,loc.lng),rising=sunPos(ts+6e4,loc.lat,loc.lng).alt>pos.alt;
   const sx=f*W,sy=hy-pos.alt*sc,n=Math.floor(f*96);
   $('past').setAttribute('d','M'+xy.slice(0,n+1).map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+`L${sx.toFixed(1)} ${sy.toFixed(1)}`);
   const a=pos.alt,up=a>-.833,sun=$('sun'),drop=$('drop'),st=hero.style,set=(k,v)=>st.setProperty(k,v);
-  const low=clamp(1-a/12,0,1),ds=clamp(Math.min(W,geo.H)*.05,22,36)*(1+.45*low);
+  const low=clamp(1-a/12,0,1),ds=clamp(Math.min(W,geo.H)*.04,18,30)*(1+.35*low);
   sun.setAttribute('cx',sx);sun.setAttribute('cy',sy);sun.setAttribute('opacity',up?0:1);
   drop.setAttribute('x1',sx);drop.setAttribute('x2',sx);drop.setAttribute('y1',up?Math.min(hy,sy+ds/2+4):Math.max(hy,sy-9));drop.setAttribute('y2',hy);
   const[top,upr,mid,lo,hor,acc]=sky(a),[d0,d1,d2]=interp(SUN,a),edge=clamp(1-Math.abs(a+.5)/9,0,1),refl=clamp(1-Math.abs(a-1)/9,0,1);
@@ -574,19 +591,21 @@ function renderHero(day,ts){
   set('--glow',rgb(d1,.6));set('--glow2',rgb(d2,.42+.2*low));set('--glow-a',clamp((a+6)/6,0,1));
   set('--hglow',rgb([255,178,92],(edge*.85).toFixed(3)));set('--hglow2',rgb([255,92,48],(edge*.6).toFixed(3)));
   set('--refl',rgb(d1,(refl*.5).toFixed(3)));set('--refl2',rgb(d2,(refl*.26).toFixed(3)));
-  set('--stars',clamp((-a-5)/9,0,1));
+  set('--stars',clamp((-a-5)/9,0,1));set('--haze',rgb(hor,.5));set('--haze2',rgb(hor.map(v=>Math.round(v*.28)),.9));
   const root=document.documentElement.style;
   root.setProperty('--accent',rgb(acc));root.setProperty('--pane',rgb(top.map((v,i)=>Math.round(v*.2+[5,7,13][i]))));
   // headline
-  const[p1,p2]=phaseName(pos.alt,rising);
+  const all=[getDay(loc,day.start-DAY/2),day,getDay(loc,day.start+DAY*1.5)].flatMap(d=>d.ev).sort((x,y)=>x.ts-y.ts);
+  const big=e=>e.k==='sunrise'||e.k==='sunset',nowEv=all.find(e=>big(e)&&ts>=e.ts-6e4&&ts<=e.ts+15e4)||all.find(e=>Math.abs(ts-e.ts)<=45e3),nx=all.find(e=>e.ts>ts&&e!==nowEv);
+  const[p1,p2]=nowEv?[nowEv.label,'']:phaseName(pos.alt,rising);
   if(changed('ph',p1+p2))$('hPhase').innerHTML=esc(p1)+(p2?' <i>'+esc(p2)+'</i>':'');
-  if(changed('hd',Math.floor(ts/6e4)+loc.id))$('hDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)+(solarDay(day)?' · '+solarDay(day):'');
-  const nx=[getDay(loc,day.start-DAY/2),day,getDay(loc,day.start+DAY*1.5)].flatMap(d=>d.ev).sort((a,b)=>a.ts-b.ts).find(e=>e.ts>ts);
-  const nt=nx?`${esc(nx.label)} in <b>${dur(nx.ts-ts)}</b>`:(day.noonAlt>0?'The sun stays up all day':'The sun stays down all day');
-  if(changed('nx',nt))$('hNext').innerHTML=nt;
+  if(changed('hd',Math.floor(ts/6e4)+loc.id)){$('hDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)+(solarDay(day)?' · '+solarDay(day):'');$('mDate').innerHTML=dShort(ts,loc.tz)+' · '+tH(ts,loc.tz)}
+  const idle=day.noonAlt>0?'The sun stays up all day':'The sun stays down all day',soon=nx?`${esc(nx.label)} in <b>${dur(nx.ts-ts)}</b>`:'';
+  const nt=nowEv?'Happening now'+(soon?' · '+soon:''):soon||idle;
+  if(changed('nx',nt)){$('hNext').innerHTML=nt;$('mEv').textContent=nowEv?nowEv.label:nx?nx.label:(day.noonAlt>0?'Midnight sun':'Polar night');$('mIn').textContent=nowEv?'now':nx?'in':'';$('mDur').textContent=nowEv||!nx?'':durL(nx.ts-ts)}
   const t=day.t,left=t.sunrise==null?(day.len?1:0):clamp((t.sunset-ts)/(t.sunset-t.sunrise),0,1),pct=Math.round(left*100);
   if(changed('rg',pct)){$('ringFg').style.strokeDashoffset=100-pct;$('ringTxt').textContent=pct+'% left'}
-  if(changed('ft',day.key)){$('fRise').innerHTML=tH(t.sunrise,loc.tz);$('fSet').innerHTML=tH(t.sunset,loc.tz);$('fLen').textContent=durS(day.len)}
+  if(changed('ft',day.key)){$('mSun').innerHTML='↑ '+tH(t.sunrise,loc.tz)+'&ensp;↓ '+tH(t.sunset,loc.tz);$('fRise').innerHTML=tH(t.sunrise,loc.tz);$('fSet').innerHTML=tH(t.sunset,loc.tz);$('fLen').textContent=durS(day.len)}
   if(changed('ln',loc.id))$('locName').textContent=loc.name;
   hero.setAttribute('aria-valuenow',(f*24).toFixed(2));hero.setAttribute('aria-valuetext',tf(loc.tz).format(ts)+', '+p1+' '+p2);
   
@@ -740,6 +759,8 @@ function setTab(tab,keep){
 wideMQ.addEventListener('change',()=>setTab(S.tab,true));
 function setClock(v){H24=v;for(const k in memo)delete memo[k];$('hcBtn').textContent=H24?'24h':'12h';persist();render()}
 $('hcBtn').addEventListener('click',()=>setClock(!H24));
+function setMode(m,quiet){S.min=m;hero.dataset.mode=m?'min':'full';$('modeBtn').textContent=m?'Details':'Minimal';if(!quiet){persist();render()}}
+$('modeBtn').addEventListener('click',()=>setMode(!S.min));
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.tab)});
 
 let drag=null;
@@ -802,7 +823,8 @@ $('instBtn').addEventListener('click',async()=>{if(!instEv)return;instEv.prompt(
 new ResizeObserver(schedule).observe(hero);new ResizeObserver(schedule).observe(box);
 setInterval(()=>{if(S.view==null&&!S.anim&&!document.hidden)render()},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
-$('hcBtn').textContent=H24?'24h':'12h';
+$('hcBtn').textContent=H24?'24h':'12h';setMode(S.min,true);
+try{const c=document.createElement('canvas');c.width=c.height=160;const x=c.getContext('2d'),im=x.createImageData(160,160);for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);$('grain').style.backgroundImage='url('+c.toDataURL()+')'}catch(e){}
 setTab(['sky','today','year','events','all'].includes(S.tab)?S.tab:(wideMQ.matches?'all':'today'));
 if(!reduced){S.view=getDay(S.loc,Date.now()).start;render();travel(null,2400)}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=null;schedule()});
@@ -811,13 +833,13 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{memo.yr=n
 
 <script>
 (()=>{ // Installed-app handling, plus a diagnostics readout (tap the daylight ring) for layout problems we cannot reproduce on a desktop
-const BUILD='b6',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
+const BUILD='b7',dm=m=>matchMedia('(display-mode:'+m+')').matches,pwa=!!navigator.standalone||dm('standalone')||dm('fullscreen');
 if(pwa)document.documentElement.classList.add('pwa');
 const ring=document.querySelector('.ring');ring.style.pointerEvents='auto';ring.addEventListener('pointerdown',e=>e.stopPropagation());
-ring.addEventListener('click',()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
+const show=()=>{const R=Math.round,p=document.createElement('div');p.style.cssText='position:fixed;left:0;width:1px;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px)';document.body.append(p);
   const r=p.getBoundingClientRect(),a=document.getElementById('app').getBoundingClientRect(),h=document.getElementById('hero').getBoundingClientRect(),v=document.createElement('div');p.remove();v.style.cssText='position:fixed;top:0;height:100vh;width:1px';document.body.append(v);const vh=v.getBoundingClientRect().height;v.remove();
   const t=[BUILD,'pwa '+pwa,'nav.standalone '+navigator.standalone,'mode '+['standalone','fullscreen','minimal-ui','browser'].filter(dm),'inner '+innerWidth+'x'+innerHeight,'client '+document.documentElement.clientHeight,'100vh '+R(vh),'vv '+(window.visualViewport?R(visualViewport.height)+' @'+R(visualViewport.offsetTop):'-'),'screen '+screen.width+'x'+screen.height,'safe top '+R(r.top)+' bottom '+R(innerHeight-r.bottom),'app '+R(a.top)+'..'+R(a.bottom),'hero '+R(h.top)+'..'+R(h.bottom),'body '+R(document.body.getBoundingClientRect().height)].join(' · ');
-  const d=document.getElementById('dbg')||Object.assign(document.createElement('div'),{id:'dbg'});d.style.cssText='position:fixed;z-index:99;left:16px;right:16px;top:40%;padding:12px;border-radius:12px;background:#000c;color:#fff;font:12px/1.5 ui-monospace,monospace';d.textContent=t;d.onclick=()=>d.remove();document.body.append(d)});
+  const d=document.getElementById('dbg')||Object.assign(document.createElement('div'),{id:'dbg'});d.style.cssText='position:fixed;z-index:99;left:16px;right:16px;top:40%;padding:12px;border-radius:12px;background:#000c;color:#fff;font:12px/1.5 ui-monospace,monospace';d.textContent=t;d.onclick=()=>d.remove();document.body.append(d)};ring.addEventListener('click',show);const md=document.getElementById('mDate');md.style.pointerEvents='auto';md.addEventListener('pointerdown',e=>e.stopPropagation());md.addEventListener('click',show);
 })();
 </script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
