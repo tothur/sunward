@@ -100,6 +100,10 @@ h2{margin:0;font:700 28px/1.1 var(--display);letter-spacing:-.022em}
 .card{min-width:0;animation:rise .8s var(--ease) both;animation-delay:calc(var(--n,0)*80ms + 150ms);container-type:inline-size;border:0;padding:18px 20px 20px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.115),rgba(255,255,255,.06));box-shadow:0 14px 40px rgba(0,0,0,.22),inset 0 0 28px rgba(255,255,255,.03)}
 @keyframes rise{from{opacity:.4;transform:translateY(16px)}}
 .card.wide{grid-column:1/-1}
+#overview{container:ov/inline-size}
+#overview .cards{grid-template-columns:minmax(0,1fr)}
+@container ov (min-width:500px){#overview .cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container ov (min-width:1080px){#overview .cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .card h3{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .big{text-wrap:balance;font:600 25px/1.15 var(--display);letter-spacing:-.02em}
 .sub{font-size:13px;color:rgba(255,255,255,.62)}
@@ -135,6 +139,7 @@ h2{margin:0;font:700 28px/1.1 var(--display);letter-spacing:-.022em}
 .mini span{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px;white-space:nowrap}
 .mini span i{width:8px;height:8px;border-radius:50%}
 .mini b{font-weight:500;font-size:13px;white-space:nowrap}
+@container (max-width:290px){.mini div{flex-direction:column;align-items:flex-start;gap:2px}.mini b{padding-left:16px}}
 .dial{flex:none;width:clamp(100px,38cqw,150px);height:auto;aspect-ratio:1}
 .split>div:first-child{min-width:0}
 .big i{font-style:normal;font-weight:400;color:var(--accent)}
@@ -146,7 +151,7 @@ h2{margin:0;font:700 28px/1.1 var(--display);letter-spacing:-.022em}
 .wlab span{position:absolute;transform:translateX(-50%);white-space:nowrap}
 .wlab .r{right:0;transform:none}
 .row svg{flex:none;margin:0 -4.5px}
-.turn{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:8px}
+.turn{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:8px;margin-inline:-12px}
 .tp{display:grid;justify-items:start;align-content:start;gap:2px;text-align:left;padding:12px;border:1px solid transparent;border-radius:20px;transition:background .2s,transform .2s var(--ease)}
 .tp:hover{background:var(--card-2)}
 .tp.on{border-color:color-mix(in srgb,var(--accent) 50%,transparent);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
